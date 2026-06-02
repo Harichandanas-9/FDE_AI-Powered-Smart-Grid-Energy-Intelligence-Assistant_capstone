@@ -1,0 +1,430 @@
+<svg viewBox="0 0 1200 1600" xmlns="http://www.w3.org/2000/svg" role="img" font-family="Segoe UI, Arial, sans-serif">
+  <title>AI-Powered Smart Grid Energy Intelligence Assistant — System Architecture</title>
+  <desc>System architecture diagram showing data flow from CSV data sources through ETL pipeline, embedding and storage, hybrid retrieval, guardrails, multi-agent pipeline, evaluation layer, FastAPI backend, and React frontend.</desc>
+
+  <!-- Background -->
+  <rect width="1200" height="1600" fill="#F7FBFA"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#1A2233">AI-Powered Smart Grid Energy Intelligence Assistant — System Architecture</text>
+  <text x="600" y="60" text-anchor="middle" font-size="13" fill="#5A6A7A">RAG + Multi-Agent + Evaluation + Real-time Dashboard</text>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 1: DATA SOURCES
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="78" width="1160" height="100" rx="10" fill="#EAF4FF" stroke="#4DA8FF" stroke-width="1.5"/>
+  <text x="36" y="96" font-size="11" font-weight="700" fill="#1A6FC4" letter-spacing="1">DATA SOURCES</text>
+
+  <!-- CSV boxes -->
+  <rect x="60" y="103" width="270" height="58" rx="8" fill="#4DA8FF" stroke="#2A88DF" stroke-width="1"/>
+  <text x="195" y="127" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">smart_grid_stability_augmented.csv</text>
+  <text x="195" y="144" text-anchor="middle" font-size="10" fill="#D6EEFF">Grid stability readings &amp; labels</text>
+
+  <rect x="365" y="103" width="270" height="58" rx="8" fill="#4DA8FF" stroke="#2A88DF" stroke-width="1"/>
+  <text x="500" y="127" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">household_power_consumption.csv</text>
+  <text x="500" y="144" text-anchor="middle" font-size="10" fill="#D6EEFF">Household energy time-series</text>
+
+  <rect x="670" y="103" width="270" height="58" rx="8" fill="#4DA8FF" stroke="#2A88DF" stroke-width="1"/>
+  <text x="805" y="127" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">electric_power_consumption.csv</text>
+  <text x="805" y="144" text-anchor="middle" font-size="10" fill="#D6EEFF">National electric power metrics</text>
+
+  <!-- Down arrows from data sources -->
+  <line x1="195" y1="161" x2="195" y2="193" stroke="#4DA8FF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <line x1="500" y1="161" x2="500" y2="193" stroke="#4DA8FF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <line x1="805" y1="161" x2="805" y2="193" stroke="#4DA8FF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- Converge lines to ETL -->
+  <line x1="195" y1="193" x2="600" y2="193" stroke="#4DA8FF" stroke-width="2"/>
+  <line x1="500" y1="193" x2="600" y2="193" stroke="#4DA8FF" stroke-width="2"/>
+  <line x1="805" y1="193" x2="600" y2="193" stroke="#4DA8FF" stroke-width="2"/>
+  <line x1="600" y1="193" x2="600" y2="208" stroke="#4DA8FF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 2: ETL PIPELINE
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="210" width="1160" height="120" rx="10" fill="#E8FBF6" stroke="#5EE6C8" stroke-width="1.5"/>
+  <text x="36" y="228" font-size="11" font-weight="700" fill="#1A8C70" letter-spacing="1">ETL PIPELINE</text>
+
+  <!-- ETL stages -->
+  <rect x="50" y="235" width="120" height="80" rx="8" fill="#5EE6C8" stroke="#2ABDA0" stroke-width="1"/>
+  <text x="110" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#0D4D3B">Loader</text>
+  <text x="110" y="288" text-anchor="middle" font-size="10" fill="#0D4D3B">Reads CSVs</text>
+
+  <line x1="170" y1="275" x2="205" y2="275" stroke="#2ABDA0" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <rect x="205" y="235" width="120" height="80" rx="8" fill="#5EE6C8" stroke="#2ABDA0" stroke-width="1"/>
+  <text x="265" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#0D4D3B">Cleaner</text>
+  <text x="265" y="288" text-anchor="middle" font-size="10" fill="#0D4D3B">Null / outlier fix</text>
+
+  <line x1="325" y1="275" x2="360" y2="275" stroke="#2ABDA0" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <rect x="360" y="235" width="130" height="80" rx="8" fill="#5EE6C8" stroke="#2ABDA0" stroke-width="1"/>
+  <text x="425" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#0D4D3B">Normalizer</text>
+  <text x="425" y="288" text-anchor="middle" font-size="10" fill="#0D4D3B">Scale / encode</text>
+
+  <line x1="490" y1="275" x2="525" y2="275" stroke="#2ABDA0" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <rect x="525" y="235" width="130" height="80" rx="8" fill="#5EE6C8" stroke="#2ABDA0" stroke-width="1"/>
+  <text x="590" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#0D4D3B">Aggregator</text>
+  <text x="590" y="288" text-anchor="middle" font-size="10" fill="#0D4D3B">Stats / windows</text>
+
+  <line x1="655" y1="275" x2="690" y2="275" stroke="#2ABDA0" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <rect x="690" y="235" width="130" height="80" rx="8" fill="#5EE6C8" stroke="#2ABDA0" stroke-width="1"/>
+  <text x="755" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#0D4D3B">Templater</text>
+  <text x="755" y="288" text-anchor="middle" font-size="10" fill="#0D4D3B">Text templates</text>
+
+  <line x1="820" y1="275" x2="860" y2="275" stroke="#2ABDA0" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <rect x="860" y="235" width="130" height="80" rx="8" fill="#2ABDA0" stroke="#1A8C70" stroke-width="1"/>
+  <text x="925" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">chunks.jsonl</text>
+  <text x="925" y="288" text-anchor="middle" font-size="10" fill="#D5F7F0">Text chunk corpus</text>
+
+  <!-- Arrow from ETL to Embedding -->
+  <line x1="925" y1="315" x2="925" y2="340" stroke="#5EE6C8" stroke-width="2" marker-end="url(#arrow-teal)"/>
+  <line x1="925" y1="340" x2="600" y2="340" stroke="#5EE6C8" stroke-width="2"/>
+  <line x1="600" y1="340" x2="600" y2="355" stroke="#5EE6C8" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 3: EMBEDDING + STORAGE
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="358" width="1160" height="120" rx="10" fill="#EEF0FF" stroke="#B79CFF" stroke-width="1.5"/>
+  <text x="36" y="376" font-size="11" font-weight="700" fill="#5C3DA6" letter-spacing="1">EMBEDDING + VECTOR STORAGE</text>
+
+  <!-- Sentence Transformer -->
+  <rect x="120" y="385" width="280" height="75" rx="8" fill="#B79CFF" stroke="#8A6AE0" stroke-width="1"/>
+  <text x="260" y="410" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Sentence Transformers</text>
+  <text x="260" y="427" text-anchor="middle" font-size="11" fill="#EDE8FF">all-MiniLM-L6-v2</text>
+  <text x="260" y="443" text-anchor="middle" font-size="10" fill="#EDE8FF">384-dim dense embeddings</text>
+
+  <line x1="400" y1="422" x2="450" y2="422" stroke="#8A6AE0" stroke-width="2"/>
+  <line x1="450" y1="422" x2="450" y2="397" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+  <line x1="450" y1="422" x2="450" y2="447" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+
+  <!-- ChromaDB -->
+  <rect x="480" y="383" width="220" height="75" rx="8" fill="#B79CFF" stroke="#8A6AE0" stroke-width="1"/>
+  <text x="590" y="412" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">ChromaDB</text>
+  <text x="590" y="429" text-anchor="middle" font-size="11" fill="#EDE8FF">Persistent Vector Store</text>
+  <text x="590" y="445" text-anchor="middle" font-size="10" fill="#EDE8FF">Semantic similarity index</text>
+
+  <!-- BM25 -->
+  <rect x="720" y="383" width="220" height="75" rx="8" fill="#B79CFF" stroke="#8A6AE0" stroke-width="1"/>
+  <text x="830" y="412" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">BM25 Index</text>
+  <text x="830" y="429" text-anchor="middle" font-size="11" fill="#EDE8FF">Serialised .pkl file</text>
+  <text x="830" y="445" text-anchor="middle" font-size="10" fill="#EDE8FF">Keyword / lexical index</text>
+
+  <!-- Arrow down to retrieval -->
+  <line x1="590" y1="458" x2="590" y2="490" stroke="#8A6AE0" stroke-width="2"/>
+  <line x1="830" y1="458" x2="830" y2="490" stroke="#8A6AE0" stroke-width="2"/>
+  <line x1="590" y1="490" x2="710" y2="490" stroke="#8A6AE0" stroke-width="2"/>
+  <line x1="830" y1="490" x2="710" y2="490" stroke="#8A6AE0" stroke-width="2"/>
+  <line x1="710" y1="490" x2="710" y2="505" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 4: HYBRID RETRIEVAL
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="508" width="1160" height="120" rx="10" fill="#EEF0FF" stroke="#B79CFF" stroke-width="1.5"/>
+  <text x="36" y="526" font-size="11" font-weight="700" fill="#5C3DA6" letter-spacing="1">HYBRID RETRIEVAL (RAG)</text>
+
+  <rect x="55" y="533" width="185" height="70" rx="8" fill="#8A6AE0" stroke="#5C3DA6" stroke-width="1"/>
+  <text x="147" y="560" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">BM25 Keyword Search</text>
+  <text x="147" y="577" text-anchor="middle" font-size="10" fill="#EDE8FF">Lexical term matching</text>
+
+  <rect x="265" y="533" width="185" height="70" rx="8" fill="#8A6AE0" stroke="#5C3DA6" stroke-width="1"/>
+  <text x="357" y="560" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Semantic Search</text>
+  <text x="357" y="577" text-anchor="middle" font-size="10" fill="#EDE8FF">ChromaDB cosine sim</text>
+
+  <!-- arrows to RRF -->
+  <line x1="240" y1="568" x2="475" y2="568" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+  <line x1="450" y1="568" x2="475" y2="568" stroke="#8A6AE0" stroke-width="2"/>
+
+  <rect x="475" y="533" width="175" height="70" rx="8" fill="#B79CFF" stroke="#8A6AE0" stroke-width="1"/>
+  <text x="562" y="560" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">RRF Fusion</text>
+  <text x="562" y="577" text-anchor="middle" font-size="10" fill="#1A0A4D">Reciprocal Rank Fusion</text>
+
+  <line x1="650" y1="568" x2="685" y2="568" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+
+  <rect x="685" y="533" width="195" height="70" rx="8" fill="#B79CFF" stroke="#8A6AE0" stroke-width="1"/>
+  <text x="782" y="557" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Cross-Encoder</text>
+  <text x="782" y="573" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Reranker</text>
+  <text x="782" y="590" text-anchor="middle" font-size="10" fill="#1A0A4D">Precision reranking</text>
+
+  <line x1="880" y1="568" x2="915" y2="568" stroke="#8A6AE0" stroke-width="2" marker-end="url(#arrow-lav)"/>
+
+  <rect x="915" y="533" width="200" height="70" rx="8" fill="#5C3DA6" stroke="#3D2080" stroke-width="1"/>
+  <text x="1015" y="560" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Top-K Chunks</text>
+  <text x="1015" y="577" text-anchor="middle" font-size="10" fill="#EDE8FF">Context for agents</text>
+
+  <!-- arrow down + guardrails path  -->
+  <line x1="147" y1="603" x2="147" y2="635" stroke="#B79CFF" stroke-width="2"/>
+  <line x1="147" y1="635" x2="600" y2="635" stroke="#B79CFF" stroke-width="2"/>
+
+  <!-- User Query arrow (left side) coming down from above into guardrails -->
+  <rect x="20" y="635" width="115" height="50" rx="8" fill="#4DA8FF" stroke="#2A88DF" stroke-width="1"/>
+  <text x="77" y="656" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">User Query</text>
+  <text x="77" y="672" text-anchor="middle" font-size="10" fill="#D6EEFF">Natural language</text>
+  <line x1="135" y1="660" x2="170" y2="660" stroke="#4DA8FF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 5: INPUT GUARDRAILS
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="155" y="628" width="510" height="75" rx="10" fill="#FFF3E8" stroke="#FF7A45" stroke-width="1.5"/>
+  <text x="171" y="646" font-size="11" font-weight="700" fill="#B84A1A" letter-spacing="1">INPUT GUARDRAILS</text>
+
+  <rect x="175" y="650" width="200" height="45" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="275" y="670" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">PII Block / Mask</text>
+  <text x="275" y="686" text-anchor="middle" font-size="10" fill="#FFE8D6">Regex + NER detection</text>
+
+  <line x1="375" y1="672" x2="410" y2="672" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <rect x="410" y="650" width="220" height="45" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="520" y="670" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Topic Validation</text>
+  <text x="520" y="686" text-anchor="middle" font-size="10" fill="#FFE8D6">Energy domain filter</text>
+
+  <!-- Arrow from guardrails to agent pipeline -->
+  <line x1="665" y1="660" x2="700" y2="660" stroke="#FF7A45" stroke-width="2" marker-end="url(#arrow-orange)"/>
+  <rect x="700" y="645" width="130" height="30" rx="6" fill="#CC5520"/>
+  <text x="765" y="665" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Masked Query →</text>
+  <line x1="830" y1="660" x2="870" y2="660" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Retrieval top-k feeding in too -->
+  <line x1="1015" y1="603" x2="1015" y2="660" stroke="#5C3DA6" stroke-width="2"/>
+  <line x1="1015" y1="660" x2="950" y2="660" stroke="#5C3DA6" stroke-width="2" marker-end="url(#arrow-lav)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 6: MULTI-AGENT PIPELINE
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="718" width="1160" height="290" rx="10" fill="#FFF3E8" stroke="#FF7A45" stroke-width="1.5"/>
+  <text x="36" y="736" font-size="11" font-weight="700" fill="#B84A1A" letter-spacing="1">MULTI-AGENT PIPELINE  (Sequential A2A)</text>
+
+  <!-- Agent boxes - row 1 -->
+  <!-- Agent 1: Guardrails -->
+  <rect x="50" y="745" width="160" height="80" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="130" y="772" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Guardrails</text>
+  <text x="130" y="789" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Agent</text>
+  <text x="130" y="806" text-anchor="middle" font-size="10" fill="#FFE8D6">Safety enforcement</text>
+
+  <line x1="210" y1="785" x2="245" y2="785" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Agent 2: Retrieval -->
+  <rect x="245" y="745" width="160" height="80" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="325" y="772" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Retrieval</text>
+  <text x="325" y="789" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Agent</text>
+  <text x="325" y="806" text-anchor="middle" font-size="10" fill="#FFE8D6">Fetches Top-K chunks</text>
+
+  <line x1="405" y1="785" x2="440" y2="785" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Agent 3: Stability -->
+  <rect x="440" y="745" width="165" height="80" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="522" y="772" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Stability</text>
+  <text x="522" y="789" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Agent</text>
+  <text x="522" y="806" text-anchor="middle" font-size="10" fill="#FFE8D6">Health score + anomaly</text>
+
+  <!-- Output label for stability -->
+  <rect x="455" y="835" width="140" height="28" rx="5" fill="#CC5520"/>
+  <text x="525" y="852" text-anchor="middle" font-size="10" fill="#fff">Health Score + Anomaly</text>
+  <line x1="522" y1="825" x2="522" y2="835" stroke="#CC5520" stroke-width="1.5"/>
+
+  <line x1="605" y1="785" x2="640" y2="785" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Agent 4: Escalation (Conditional) -->
+  <rect x="640" y="745" width="175" height="80" rx="8" fill="#D95A25" stroke="#A83A10" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="727" y="768" text-anchor="middle" font-size="11" fill="#FFD1B8">[Conditional]</text>
+  <text x="727" y="784" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Escalation</text>
+  <text x="727" y="800" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Agent</text>
+  <text x="727" y="816" text-anchor="middle" font-size="10" fill="#FFE8D6">if health &lt; 50</text>
+
+  <line x1="815" y1="785" x2="850" y2="785" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Agent 5: Failure -->
+  <rect x="850" y="745" width="155" height="80" rx="8" fill="#FF7A45" stroke="#CC5520" stroke-width="1"/>
+  <text x="927" y="772" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Failure</text>
+  <text x="927" y="789" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Agent</text>
+  <text x="927" y="806" text-anchor="middle" font-size="10" fill="#FFE8D6">Root causes + prob.</text>
+
+  <!-- Output label for failure -->
+  <rect x="855" y="835" width="145" height="28" rx="5" fill="#CC5520"/>
+  <text x="927" y="852" text-anchor="middle" font-size="10" fill="#fff">Root Causes + Probabilities</text>
+  <line x1="927" y1="825" x2="927" y2="835" stroke="#CC5520" stroke-width="1.5"/>
+
+  <line x1="1005" y1="785" x2="1035" y2="785" stroke="#CC5520" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Agent 6: Recommendation -->
+  <rect x="1035" y="745" width="120" height="80" rx="8" fill="#C84A10" stroke="#8C2800" stroke-width="1"/>
+  <text x="1095" y="768" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Recom-</text>
+  <text x="1095" y="784" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">mendation</text>
+  <text x="1095" y="800" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Agent</text>
+  <text x="1095" y="816" text-anchor="middle" font-size="10" fill="#FFE8D6">LLM / Template</text>
+
+  <!-- Output label for recommendation -->
+  <rect x="1020" y="835" width="145" height="28" rx="5" fill="#8C2800"/>
+  <text x="1092" y="852" text-anchor="middle" font-size="10" fill="#fff">Answer + Recommendations</text>
+  <line x1="1095" y1="825" x2="1095" y2="835" stroke="#8C2800" stroke-width="1.5"/>
+
+  <!-- Row 2: sub-label -->
+  <text x="600" y="886" text-anchor="middle" font-size="11" fill="#8C3A10" font-style="italic">Each agent passes context to the next; Escalation fires only when Health Score &lt; 50</text>
+
+  <!-- Arrows down from agent pipeline -->
+  <line x1="325" y1="900" x2="325" y2="930" stroke="#FF7A45" stroke-width="2"/>
+  <line x1="522" y1="900" x2="522" y2="930" stroke="#FF7A45" stroke-width="2"/>
+  <line x1="927" y1="900" x2="927" y2="930" stroke="#FF7A45" stroke-width="2"/>
+  <line x1="1095" y1="900" x2="1095" y2="930" stroke="#FF7A45" stroke-width="2"/>
+  <line x1="325" y1="930" x2="1095" y2="930" stroke="#FF7A45" stroke-width="2"/>
+  <line x1="600" y1="930" x2="600" y2="945" stroke="#FF7A45" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 7: EVALUATION LAYER
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="948" width="1160" height="115" rx="10" fill="#FFFAE8" stroke="#FFD166" stroke-width="1.5"/>
+  <text x="36" y="966" font-size="11" font-weight="700" fill="#8C6800" letter-spacing="1">EVALUATION LAYER</text>
+
+  <!-- DeepEval -->
+  <rect x="80" y="973" width="340" height="75" rx="8" fill="#FFD166" stroke="#C9A100" stroke-width="1"/>
+  <text x="250" y="998" text-anchor="middle" font-size="13" font-weight="700" fill="#3D2800">DeepEval Framework</text>
+  <text x="250" y="1016" text-anchor="middle" font-size="11" fill="#5A3A00">Faithfulness  ·  Answer Relevancy</text>
+  <text x="250" y="1032" text-anchor="middle" font-size="11" fill="#5A3A00">Contextual Precision  ·  Recall</text>
+
+  <!-- LLM as Judge -->
+  <rect x="460" y="973" width="340" height="75" rx="8" fill="#FFD166" stroke="#C9A100" stroke-width="1"/>
+  <text x="630" y="998" text-anchor="middle" font-size="13" font-weight="700" fill="#3D2800">LLM-as-Judge</text>
+  <text x="630" y="1016" text-anchor="middle" font-size="11" fill="#5A3A00">Accuracy  ·  Completeness</text>
+  <text x="630" y="1032" text-anchor="middle" font-size="11" fill="#5A3A00">Actionability  ·  Hallucination Guard</text>
+
+  <!-- Eval Scores output -->
+  <rect x="840" y="973" width="300" height="75" rx="8" fill="#C9A100" stroke="#8C6800" stroke-width="1"/>
+  <text x="990" y="1000" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Evaluation Scores</text>
+  <text x="990" y="1017" text-anchor="middle" font-size="11" fill="#FFF3CC">Per-query metric reports</text>
+  <text x="990" y="1033" text-anchor="middle" font-size="11" fill="#FFF3CC">Logged + visualised in UI</text>
+
+  <!-- Arrow eval → backend -->
+  <line x1="600" y1="1063" x2="600" y2="1078" stroke="#FFD166" stroke-width="2" marker-end="url(#arrow-yellow)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 8: FASTAPI BACKEND
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="1081" width="1160" height="100" rx="10" fill="#F0FFF4" stroke="#6FE38A" stroke-width="1.5"/>
+  <text x="36" y="1099" font-size="11" font-weight="700" fill="#1A6B30" letter-spacing="1">FASTAPI BACKEND</text>
+
+  <rect x="80" y="1105" width="400" height="65" rx="8" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="280" y="1128" text-anchor="middle" font-size="13" font-weight="700" fill="#0A3A14">REST API  —  17 Endpoints</text>
+  <text x="280" y="1146" text-anchor="middle" font-size="11" fill="#0A3A14">/query · /stability · /failure · /recommendations</text>
+  <text x="280" y="1162" text-anchor="middle" font-size="11" fill="#0A3A14">/etl · /evaluate · /metrics · /export …</text>
+
+  <rect x="530" y="1105" width="280" height="65" rx="8" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="670" y="1130" text-anchor="middle" font-size="13" font-weight="700" fill="#0A3A14">WebSocket Server</text>
+  <text x="670" y="1148" text-anchor="middle" font-size="11" fill="#0A3A14">Real-time streaming</text>
+  <text x="670" y="1164" text-anchor="middle" font-size="11" fill="#0A3A14">Live telemetry feed</text>
+
+  <rect x="860" y="1105" width="280" height="65" rx="8" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="1000" y="1128" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">JSON / PDF Output</text>
+  <text x="1000" y="1146" text-anchor="middle" font-size="11" fill="#D5FFE0">Structured response</text>
+  <text x="1000" y="1162" text-anchor="middle" font-size="11" fill="#D5FFE0">PDF export on demand</text>
+
+  <!-- Arrow backend → frontend -->
+  <line x1="600" y1="1181" x2="600" y2="1196" stroke="#6FE38A" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 9: REACT FRONTEND
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="20" y="1199" width="1160" height="250" rx="10" fill="#F0FFF4" stroke="#6FE38A" stroke-width="1.5"/>
+  <text x="36" y="1217" font-size="11" font-weight="700" fill="#1A6B30" letter-spacing="1">REACT FRONTEND  —  13 Pages</text>
+
+  <!-- Page boxes row 1 -->
+  <rect x="40" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="117" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Dashboard</text>
+
+  <rect x="207" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="284" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Query Console</text>
+
+  <rect x="374" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="451" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Grid Stability</text>
+
+  <rect x="541" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="618" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Failure Analysis</text>
+
+  <rect x="708" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="785" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Smart Meter</text>
+
+  <rect x="875" y="1223" width="155" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="952" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Telemetry</text>
+
+  <rect x="1042" y="1223" width="120" height="45" rx="6" fill="#6FE38A" stroke="#3DBD5A" stroke-width="1"/>
+  <text x="1102" y="1249" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">Recom-</text>
+  <text x="1102" y="1262" text-anchor="middle" font-size="11" font-weight="600" fill="#0A3A14">mendations</text>
+
+  <!-- Page boxes row 2 -->
+  <rect x="40" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="117" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Agent Flow</text>
+
+  <rect x="207" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="284" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Incident Timeline</text>
+
+  <rect x="374" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="451" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Heatmap Analytics</text>
+
+  <rect x="541" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="618" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Predictive Intel.</text>
+
+  <rect x="708" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="785" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">ETL Monitor</text>
+
+  <rect x="875" y="1278" width="155" height="45" rx="6" fill="#3DBD5A" stroke="#1A8C35" stroke-width="1"/>
+  <text x="952" y="1304" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">Settings</text>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LEGEND
+  ══════════════════════════════════════════════════════════════ -->
+  <rect x="40" y="1348" width="1120" height="60" rx="8" fill="#fff" stroke="#CBD5E0" stroke-width="1"/>
+  <text x="90" y="1368" text-anchor="middle" font-size="11" font-weight="700" fill="#333">LEGEND</text>
+
+  <rect x="130" y="1353" width="16" height="16" rx="3" fill="#4DA8FF"/>
+  <text x="152" y="1366" font-size="11" fill="#333">Data Sources</text>
+
+  <rect x="255" y="1353" width="16" height="16" rx="3" fill="#5EE6C8"/>
+  <text x="277" y="1366" font-size="11" fill="#333">ETL / Storage</text>
+
+  <rect x="385" y="1353" width="16" height="16" rx="3" fill="#B79CFF"/>
+  <text x="407" y="1366" font-size="11" fill="#333">RAG / Retrieval</text>
+
+  <rect x="510" y="1353" width="16" height="16" rx="3" fill="#FF7A45"/>
+  <text x="532" y="1366" font-size="11" fill="#333">Agents</text>
+
+  <rect x="600" y="1353" width="16" height="16" rx="3" fill="#FFD166"/>
+  <text x="622" y="1366" font-size="11" fill="#333">Evaluation</text>
+
+  <rect x="705" y="1353" width="16" height="16" rx="3" fill="#6FE38A"/>
+  <text x="727" y="1366" font-size="11" fill="#333">Frontend / Backend</text>
+
+  <line x1="860" y1="1361" x2="900" y2="1361" stroke="#555" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <text x="910" y="1366" font-size="11" fill="#333">Data Flow</text>
+
+  <rect x="860" y="1375" width="40" height="12" rx="3" fill="#D95A25" stroke="#A83A10" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="910" y="1386" font-size="11" fill="#333">Conditional Agent</text>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ARROW MARKERS
+  ══════════════════════════════════════════════════════════════ -->
+  <defs>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4DA8FF"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2ABDA0"/>
+    </marker>
+    <marker id="arrow-lav" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8A6AE0"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#CC5520"/>
+    </marker>
+    <marker id="arrow-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#C9A100"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3DBD5A"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#555"/>
+    </marker>
+  </defs>
+</svg>

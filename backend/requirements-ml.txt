@@ -1,0 +1,39 @@
+# ===== Smart Grid AI Assistant - ML / RAG / Agent dependencies =====
+# Compatible with Python 3.11, 3.12, AND 3.13.
+# Install AFTER requirements.txt:  pip install -r requirements-ml.txt
+
+# --- Data / numerical ---
+scipy>=1.14.1,<2.0
+scikit-learn>=1.5.0
+
+# --- Embeddings + Vector store ---
+chromadb>=0.5.20
+sentence-transformers>=3.2.1
+
+# --- Hybrid search ---
+rank-bm25==0.2.2
+nltk>=3.9.1
+
+# --- RAG / LLM orchestration ---
+langchain>=0.3.20
+langchain-core>=0.3.40
+langchain-community>=0.3.5
+langchain-openai>=0.3.0
+langchain-anthropic>=0.2.3
+langchain-groq>=0.3.0
+tiktoken>=0.8.0
+tenacity>=8.2.3
+
+# --- LangGraph (multi-agent pipeline) ---
+# IMPORTANT: MemorySaver NOT SqliteSaver - context manager API broke in 0.2.50+
+langgraph>=0.2.50
+langgraph-checkpoint-sqlite>=2.0.0
+
+# --- LangSmith tracing (optional) ---
+langsmith>=0.2.0
+
+# --- fastembed (embedding fallback - no torch required) ---
+fastembed>=0.3.0
+
+# --- Evaluation ---
+deepeval>=1.5.4

@@ -1,0 +1,115 @@
+AI-Powered Smart Grid Energy Intelligence Assistant
+
+Overview
+
+Modern power utilities operate large-scale electrical grids consisting of transformers, substations, smart meters, transmission systems, renewable energy assets, and distribution infrastructure. These systems continuously generate telemetry data, outage records, voltage measurements, consumption patterns, and operational alarms.
+
+Grid operators and utility engineers often spend significant time identifying failures because operational information is distributed across SCADA systems, smart meter infrastructure, maintenance logs, outage management systems, and monitoring platforms.
+
+Engineers frequently investigate situations such as:
+- "Voltage instability is increasing across multiple distribution zones."
+- "Transformer overload conditions are recurring during peak demand."
+- "Unexpected power fluctuations observed after maintenance activity."
+- "Renewable energy variability causing grid balancing issues."
+- "Smart meter anomalies detected in a residential service area."
+
+Traditional monitoring systems rely heavily on threshold alarms and manual analysis, increasing operational complexity and outage recovery time.
+
+The system should help utility operators retrieve historical grid incidents, identify probable causes, recommend mitigation actions, and generate explainable grid intelligence.
+
+
+Objective
+
+Build an AI-powered smart grid energy intelligence assistant that enables utility engineers to investigate power system issues using natural-language queries and intelligent grid analysis.
+
+The system should retrieve historical operational incidents, correlate telemetry patterns, detect abnormal grid behavior, and generate explainable root-cause insights to improve grid reliability and operational efficiency.
+
+
+Key Capabilities
+- Natural Language Grid Queries
+- Semantic Incident Retrieval
+- Grid Failure Analysis
+- Smart Meter Intelligence
+- Grid Stability Monitoring
+- Energy Knowledge Summarization
+- Explainable Recommendations
+- Multi-System Understanding (transformers, substations, renewables, smart meters, distribution)
+
+
+Requirement 1 (Basic)
+- Basic RAG for grid incident retrieval
+- Hybrid search (keyword + semantic)
+- Smart grid semantic search
+- Metadata filtering (region, severity, equipment type)
+- Basic root-cause recommendation engine
+- Input validation guardrails
+- Incident similarity ranking
+- Grid mitigation recommendation generation
+- Expose core functionality through API endpoints
+
+
+Requirement 2 (Advanced)
+- DeepEval for recommendation quality evaluation
+- Telemetry anomaly correlation analysis
+- Reranking using grid operational embeddings
+- LLM-as-judge for mitigation validation
+- Token optimization for large-scale telemetry analysis
+- Multi-Agent Grid Intelligence System:
+    * Grid Retrieval Agent
+    * Grid Stability Agent
+    * Failure Analysis Agent
+    * Recommendation Agent
+- Proactive intelligence on grid failures
+- Power grid health analytics dashboard
+- Agent-to-Agent (A2A) communication for escalation workflows
+- Build a simple front-end interface
+
+
+Additional Capabilities (Optional)
+- Transformer health monitoring
+- Power demand forecasting
+- Grid load balancing intelligence
+- Renewable energy integration analysis
+- Cross-region outage correlation
+- Feedback loop for operational optimization
+- Real-time energy analytics dashboard
+- SCADA integration support
+
+
+Deliverables
+
+1. Architecture Diagram showing:
+   - telemetry ingestion pipeline
+   - operational event processing
+   - document chunking and embedding generation
+   - hybrid retrieval layer
+   - multi-agent intelligence pipeline
+   - recommendation generation
+
+2. Design write-up covering:
+   - vector database selection
+   - chunking strategy for telemetry records
+   - hybrid search vs semantic-only retrieval
+   - agent orchestration architecture
+   - anomaly correlation strategy
+   - operational reliability guardrails
+
+3. Full Executable Code (Microservice) — modular, clear, with README.
+
+4. Panel Presentation (10 Minutes):
+   - operator enters grid issue query
+   - system retrieves related incidents
+   - multi-agent analysis identifies probable causes
+   - system generates explainable mitigation guidance
+   - Q&A (2 minutes)
+
+
+Datasets
+- Smart Grid Stability Dataset: smart_grid_stability_augmented.csv (primary)
+- Electric Power Consumption Dataset (alternative)
+- Household Electric Power Consumption Dataset (alternative)
+
+Format: CSV
+
+Key fields: voltage, current, power_consumption, transformer_status, outage_event,
+region, demand_load, timestamp, grid_frequency, equipment_type

@@ -1,0 +1,249 @@
+AI-Powered Smart Grid Energy Intelligence Assistant 
+
+Overview 
+
+Modern power utilities operate large-scale electrical grids consisting of transformers, substations, smart meters, transmission systems, renewable energy assets, and distribution infrastructure. These systems continuously generate telemetry data, outage records, voltage measurements, consumption patterns, and operational alarms. 
+
+Grid operators and utility engineers often spend significant time identifying failures because operational information is distributed across SCADA systems, smart meter infrastructure, maintenance logs, outage management systems, and monitoring platforms. 
+
+Engineers frequently investigate situations such as: 
+
+"Voltage instability is increasing across multiple distribution zones."  
+
+"Transformer overload conditions are recurring during peak demand."  
+
+"Unexpected power fluctuations observed after maintenance activity."  
+
+"Renewable energy variability causing grid balancing issues."  
+
+"Smart meter anomalies detected in a residential service area."  
+
+Traditional monitoring systems rely heavily on threshold alarms and manual analysis, increasing operational complexity and outage recovery time. 
+
+The system should help utility operators retrieve historical grid incidents, identify probable causes, recommend mitigation actions, and generate explainable grid intelligence. 
+
+ 
+
+Objective 
+
+The objective of this project is to build an AI-powered smart grid energy intelligence assistant that enables utility engineers to investigate power system issues using natural-language queries and intelligent grid analysis. 
+
+The system should retrieve historical operational incidents, correlate telemetry patterns, detect abnormal grid behavior, and generate explainable root-cause insights to improve grid reliability and operational efficiency. 
+
+ 
+
+Key Capabilities 
+
+Natural Language Grid Queries 
+
+Grid operators can describe operational problems conversationally. 
+
+Semantic Incident Retrieval 
+
+Retrieve historical power system incidents based on conceptual similarity. 
+
+Grid Failure Analysis 
+
+Identify probable outage causes using telemetry correlation. 
+
+Smart Meter Intelligence 
+
+Analyze abnormal consumption and device behavior. 
+
+Grid Stability Monitoring 
+
+Estimate operational reliability and infrastructure health. 
+
+Energy Knowledge Summarization 
+
+Generate summaries of outage patterns and operational trends. 
+
+Explainable Recommendations 
+
+Provide transparent recommendations grounded in grid intelligence. 
+
+Multi-System Understanding 
+
+Support transformers, substations, renewable energy assets, smart meters, and distribution infrastructure. 
+
+ 
+
+Requirement 1 (Basic) 
+
+Basic RAG for grid incident retrieval  
+
+Hybrid search (keyword + semantic)  
+
+Smart grid semantic search  
+
+Metadata filtering (region, severity, equipment type)  
+
+Basic root-cause recommendation engine  
+
+Input validation guardrails  
+
+Incident similarity ranking  
+
+Grid mitigation recommendation generation  
+
+Expose the core functionality through API endpoints so that users or other applications can interact with the system. 
+
+ 
+
+Requirement 2 (Advanced) 
+
+DeepEval for recommendation quality evaluation  
+
+Telemetry anomaly correlation analysis  
+
+Reranking using grid operational embeddings  
+
+LLM-as-judge for mitigation validation  
+
+Token optimization for large-scale telemetry analysis  
+
+Multi-Agent Grid Intelligence System 
+
+Grid Retrieval Agent  
+
+Grid Stability Agent  
+
+Failure Analysis Agent  
+
+Recommendation Agent  
+
+Proactive intelligence on grid failures 
+
+Power grid health analytics dashboard 
+
+Agent-to-Agent (A2A) communication for escalation workflows 
+
+Build a simple front-end interface to demonstrate how an end user can interact with the system. 
+
+ 
+
+Additional Capabilities (Optional) 
+
+Transformer health monitoring  
+
+Power demand forecasting  
+
+Grid load balancing intelligence  
+
+Renewable energy integration analysis  
+
+Cross-region outage correlation  
+
+Feedback loop for operational optimization  
+
+Real-time energy analytics dashboard  
+
+SCADA integration support  
+
+ 
+
+Deliverables 
+
+1. Architecture Diagram 
+
+Include a high-level view showing: 
+
+telemetry ingestion pipeline  
+
+operational event processing  
+
+document chunking and embedding generation  
+
+hybrid retrieval layer  
+
+multi-agent intelligence pipeline  
+
+recommendation generation  
+
+2. Design 
+
+Explain system design decisions and trade-offs such as: 
+
+vector database selection  
+
+chunking strategy for telemetry records  
+
+hybrid search vs semantic-only retrieval  
+
+agent orchestration architecture  
+
+anomaly correlation strategy  
+
+operational reliability guardrails  
+
+ 
+
+3. Full Executable Code (Microservice) 
+
+Focus on modularity and clarity. 
+
+Provide a README explaining: 
+
+Project setup  
+
+Grid telemetry ingestion process  
+
+Sample operational query  
+
+Example mitigation recommendation  
+
+API usage examples  
+
+ 
+
+4. Panel Presentation (10 Minutes) 
+
+Demo Flow 
+
+Utility operator enters grid issue query  
+
+System retrieves related incidents  
+
+Multi-agent analysis identifies probable causes  
+
+System generates explainable mitigation guidance  
+
+Q&A with panel (2 minutes) 
+
+ 
+
+Dataset Name 
+
+Smart Grid Stability Dataset:  smart_grid_stability_augmented.csv 
+
+ 
+
+Primary Link 
+
+Smart Grid Stability Dataset 
+
+ 
+
+Alternative Links 
+
+Electric Power Consumption Dataset  
+
+Household Electric Power Consumption Dataset 
+
+ 
+
+Format 
+
+CSV 
+
+ 
+
+Key Fields 
+
+voltage, current, power_consumption, transformer_status, outage_event, region, demand_load, timestamp, grid_frequency, equipment_type 
+
+ 
+
+Reason 
+
+Smart grid datasets containing power measurements, telemetry signals, outage information, demand patterns, and infrastructure operational data suitable for semantic retrieval, anomaly detection, predictive outage intelligence, root-cause analysis, and AI-powered grid operations systems. 

@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------- */
+html, body, #root { height: 100%; }
+body {
+  @apply font-sans text-ink-700 antialiased;
+  background:
+    radial-gradient(1200px 600px at 0% 0%, rgba(167,241,222,0.45) 0%, transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, rgba(213,197,255,0.45) 0%, transparent 65%),
+    radial-gradient(900px 400px at 50% 100%, rgba(255,197,154,0.30) 0%, transparent 65%),
+    #F7FBFA;
+  background-attachment: fixed;
+}
+
+/* -------------------------------------------------------------------------
+   Glassmorphism utilities
+   ------------------------------------------------------------------------- */
+@layer components {
+  .glass {
+    @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-glass rounded-2xl;
+  }
+  .glass-strong {
+    @apply bg-white/75 backdrop-blur-lg border border-white/50 shadow-glass rounded-2xl;
+  }
+  .glass-dark {
+    @apply bg-ink-900/80 backdrop-blur-md border border-white/10 text-white rounded-2xl;
+  }
+  .surface {
+    @apply bg-white/90 border border-mint-100 shadow-card rounded-xl;
+  }
+  /* Sidebar nav pill */
+  .nav-pill {
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-ink-500 font-medium
+           transition-all duration-150 hover:bg-white/60 hover:text-ink-900;
+  }
+  .nav-pill-active {
+    @apply bg-white/85 text-ink-900 shadow-card;
+  }
+  /* Subtle KPI gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-br from-mint-700 via-mint-500 to-lavender-500 bg-clip-text text-transparent;
+  }
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-mint-500 text-ink-900 hover:bg-mint-700 hover:text-white
+           shadow-card hover:shadow-card-hover;
+  }
+  .btn-secondary {
+    @apply btn bg-white/80 text-ink-700 border border-white/60 hover:bg-white;
+  }
+  .btn-danger {
+    @apply btn bg-orange-700 text-white hover:bg-orange-700/90;
+  }
+  .btn-accent {
+    @apply btn text-white shadow-card hover:shadow-card-hover;
+  }
+  /* Loading shimmer */
+  .skeleton {
+    @apply bg-gradient-to-r from-white/40 via-white/70 to-white/40 bg-[length:200%_100%] animate-shimmer rounded-lg;
+  }
+  /* Severity pills */
+  .pill { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold; }
+  .pill-low      { @apply pill bg-mint-100 text-mint-700; }
+  .pill-medium   { @apply pill bg-lavender-100 text-lavender-700; }
+  .pill-high     { @apply pill bg-orange-300 text-ink-900; }
+  .pill-critical { @apply pill bg-orange-700 text-white; }
+}
+
+/* -------------------------------------------------------------------------
+   Scrollbar polish
+   ------------------------------------------------------------------------- */
+* { scrollbar-width: thin; scrollbar-color: rgba(63,75,102,0.25) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(63,75,102,0.25); border-radius: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
