@@ -26,6 +26,7 @@ from app.data.cleaner import clean
 from app.data.loader import discover_datasets, load_csv
 from app.data.normalizer import normalize
 from app.data.templater import chunk_to_dict, render_dataframe
+from app.rag.chunker import ChunkStrategy, chunk_texts
 
 logger = get_logger(__name__)
 
@@ -121,10 +122,24 @@ def run_ingestion(
                     df_clean = clean(df_norm)
                     df_agg = aggregate(df_clean)
                     df_chunks = render_dataframe(df_agg)
+                    # Convert rows → raw incident dicts, then apply text chunking
+                    raw_records = [
+                        chunk_to_dict(row, tenant_id=tenant_id)
+                        for _, row in df_chunks.iterrows()
+                    ]
+                    try:
+                        strat = ChunkStrategy(settings.chunk_strategy)
+                    except (ValueError, AttributeError):
+                        strat = ChunkStrategy.SENTENCE
+                    final_chunks = chunk_texts(
+                        raw_records,
+                        strategy=strat,
+                        size=getattr(settings, "chunk_size", 4),
+                        overlap=getattr(settings, "chunk_overlap", 1),
+                    )
                     n = 0
-                    for _, row in df_chunks.iterrows():
-                        out_fh.write(json.dumps(chunk_to_dict(row, tenant_id=tenant_id),
-                                                default=str))
+                    for chunk in final_chunks:
+                        out_fh.write(json.dumps(chunk, default=str))
                         out_fh.write("\n")
                         n += 1
                     report.per_source[key] = n

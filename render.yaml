@@ -38,15 +38,55 @@ services:
         value: groq
       - key: LLM_MODEL
         value: llama-3.3-70b-versatile
-      # 'hash' = offline, zero-RAM embedder (reliable on Render free tier, which
-      # OOMs loading torch/MiniLM). Switch to a sentence-transformers model only
-      # on a paid plan with >=2GB RAM.
+      # Embedding: 3-tier fallback — sentence-transformers → fastembed → hash
+      # Free tier has 512MB RAM; fastembed (ONNX) is lighter than torch/MiniLM.
+      # Code auto-falls back: if sentence-transformers OOMs, fastembed takes over;
+      # if that also fails, HashEmbedder runs with zero extra RAM.
       - key: EMBEDDING_MODEL
-        value: hash
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: FASTEMBED_MODEL
+        value: BAAI/bge-small-en-v1.5
+
+      # Chunking
+      - key: CHUNK_STRATEGY
+        value: sentence
+      - key: CHUNK_SIZE
+        value: "4"
+      - key: CHUNK_OVERLAP
+        value: "1"
+
+      # Reranker: CrossEncoder → ScoreFusion auto-fallback (no crash if model missing)
+      - key: RERANKER_ENABLED
+        value: "true"
+      - key: RERANKER_MODEL
+        value: cross-encoder/ms-marco-MiniLM-L-6-v2
+
+      # Retrieval
       - key: RETRIEVAL_TOP_K
         value: "20"
       - key: FINAL_TOP_K
         value: "5"
+      - key: RRF_SEMANTIC_WEIGHT
+        value: "0.6"
+      - key: RRF_KEYWORD_WEIGHT
+        value: "0.4"
+      - key: CRAG_RELEVANCE_THRESHOLD
+        value: "0.0"
+
+      # Semantic cache
+      - key: SEMANTIC_CACHE_THRESHOLD
+        value: "0.92"
+      - key: SEMANTIC_CACHE_MAX_ITEMS
+        value: "500"
+
+      # LLM fallback chain
+      - key: GROQ_MODEL_LARGE
+        value: llama-3.3-70b-versatile
+      - key: GROQ_MODEL_SMALL
+        value: llama-3.1-8b-instant
+      - key: LLM_FALLBACK_CHAIN
+        value: groq_large
+
       - key: PYTHON_VERSION
         value: 3.11.10
       # Set these in Render dashboard — never commit secrets

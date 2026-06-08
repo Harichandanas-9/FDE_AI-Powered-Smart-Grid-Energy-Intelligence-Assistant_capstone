@@ -1,18 +1,31 @@
 # ===== Smart Grid AI Assistant - ML / RAG / Agent dependencies =====
-# Compatible with Python 3.11, 3.12, AND 3.13.
+# Target: Python 3.11  |  ChromaDB  |  BM25  |  Hybrid reranking
 # Install AFTER requirements.txt:  pip install -r requirements-ml.txt
 
 # --- Data / numerical ---
 scipy>=1.14.1,<2.0
 scikit-learn>=1.5.0
+# numpy already pinned in requirements.txt (==2.1.3) — do not re-pin here.
 
-# --- Embeddings + Vector store ---
-chromadb>=0.5.20
+# --- Embeddings (3-tier: sentence-transformers → fastembed → hash) ---
+# sentence-transformers needs torch; fastembed uses ONNX (no torch DLLs).
 sentence-transformers>=3.2.1
+torch>=2.2.0              # CPU-only wheel sufficient; GPU optional
+fastembed>=0.4.0          # ONNX-based fallback; works on locked-down laptops
+onnxruntime>=1.18.0       # runtime for fastembed (CPU)
 
-# --- Hybrid search ---
-rank-bm25==0.2.2
-nltk>=3.9.1
+# --- Vector store ---
+chromadb>=0.5.20,<2.0     # persistent ChromaDB; 1.x API used
+                           # (get_or_create_collection + cosine space)
+
+# --- Hybrid keyword search ---
+rank-bm25==0.2.2           # BM25Okapi implementation (stable, no deps)
+nltk>=3.9.1               # tokenization utilities (optional, used by bm25_index)
+
+# --- Reranking ---
+# CrossEncoder from sentence-transformers (Tier 1).
+# ScoreFusion reranker (Tier 2) needs no extra package — built-in.
+# sentence-transformers already listed above.
 
 # --- RAG / LLM orchestration ---
 langchain>=0.3.20
@@ -25,15 +38,12 @@ tiktoken>=0.8.0
 tenacity>=8.2.3
 
 # --- LangGraph (multi-agent pipeline) ---
-# IMPORTANT: MemorySaver NOT SqliteSaver - context manager API broke in 0.2.50+
+# IMPORTANT: MemorySaver NOT SqliteSaver — context manager API broke in 0.2.50+
 langgraph>=0.2.50
 langgraph-checkpoint-sqlite>=2.0.0
 
 # --- LangSmith tracing (optional) ---
 langsmith>=0.2.0
-
-# --- fastembed (embedding fallback - no torch required) ---
-fastembed>=0.3.0
 
 # --- Evaluation ---
 deepeval>=1.5.4

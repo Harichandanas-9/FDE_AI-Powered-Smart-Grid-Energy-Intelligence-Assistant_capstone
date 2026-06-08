@@ -1,26 +1,20 @@
 """
-Embedding generator — sentence-transformers with a torch-free fallback.
+Embedding generator — three-tier fallback for Python 3.11 / corporate laptops.
 
-Two modes, picked automatically at load time:
-  1. sentence-transformers (MiniLM-L6-v2)  — best quality, requires torch + DLLs
-  2. HashEmbedder (pure NumPy)             — fallback when torch fails to load
+Load order (picked automatically):
+  1. sentence-transformers (all-MiniLM-L6-v2) — best quality; needs torch.
+  2. fastembed (BAAI/bge-small-en-v1.5)       — no torch DLLs, ONNX runtime.
+  3. HashEmbedder (pure NumPy)                — zero dependencies; last resort.
 
-Why the fallback exists
------------------------
-On Python 3.13 + Windows, torch wheels frequently fail with DLL load errors
-that can only be fixed with admin rights (VC++ redist) or registry edits.
-This project must run on locked-down corporate laptops, so we provide a
-deterministic, dependency-free fallback that still produces useful retrieval
-when combined with BM25 keyword search.
+Why three tiers
+---------------
+On Python 3.11 + Windows, torch wheels may fail with DLL load errors on
+locked-down corporate laptops. fastembed uses ONNX Runtime (no torch), so it
+works in those environments with near-MiniLM quality. HashEmbedder is kept as
+the final safety net so the app never crashes from a missing model.
 
-Quality note
-------------
-HashEmbedder uses feature-hashing (scikit-learn's HashingVectorizer technique):
-each word and word-bigram is hashed into one of 384 buckets, the vector is
-normalized. Texts sharing vocabulary -> similar vectors -> cosine works.
-For grid-domain text where every chunk uses power-system terminology, this
-gives recall comparable to MiniLM on the demo corpus. The hybrid retriever's
-BM25 leg picks up exact-match precision.
+FastEmbedWrapper adapts the fastembed API to match the sentence-transformers
+.encode() signature so the rest of the codebase stays unchanged.
 """
 from __future__ import annotations
 
@@ -40,7 +34,7 @@ _TOKEN_RE = re.compile(r"[a-z][a-z0-9-]+")
 
 _MODEL = None
 _MODEL_NAME: Optional[str] = None
-_MODEL_KIND: str = "uninitialized"   # 'sentence-transformers' | 'hash-fallback'
+_MODEL_KIND: str = "uninitialized"   # 'sentence-transformers' | 'fastembed' | 'hash-fallback'
 _LOCK = Lock()
 
 
@@ -87,39 +81,77 @@ class HashEmbedder:
 
 
 # ============================================================================
-# Model selection — try sentence-transformers, fall back on ANY failure
+# fastembed wrapper — adapts TextEmbedding to match the ST .encode() API
+# ============================================================================
+class FastEmbedWrapper:
+    """Wraps fastembed.TextEmbedding to look like a SentenceTransformer."""
+
+    def __init__(self, model_name: str):
+        from fastembed import TextEmbedding  # noqa: PLC0415
+        self._model = TextEmbedding(model_name)
+        self.name = f"fastembed:{model_name}"
+
+    def encode(
+        self,
+        texts,
+        batch_size: int = 256,           # noqa: ARG002
+        show_progress_bar: bool = False,  # noqa: ARG002
+        convert_to_numpy: bool = True,    # noqa: ARG002
+        normalize_embeddings: bool = True,
+    ) -> np.ndarray:
+        if isinstance(texts, str):
+            texts = [texts]
+        # fastembed returns a generator of np arrays
+        vecs = list(self._model.embed(texts))
+        arr = np.array(vecs, dtype=np.float32)
+        if normalize_embeddings:
+            norms = np.linalg.norm(arr, axis=1, keepdims=True)
+            norms = np.where(norms == 0, 1.0, norms)
+            arr = arr / norms
+        return arr
+
+
+# ============================================================================
+# Model selection — sentence-transformers → fastembed → hash (3-tier)
 # ============================================================================
 def _load_model(model_name: str):
-    # Fast-mode: 'hash' model name -> instant HashEmbedder (no download, no torch)
-    if model_name in ('hash', 'hash-fallback', 'fast', 'demo'):
-        logger.info("hash_embedder_selected", extra={"model_name": model_name})
-        return HashEmbedder(_DIM)
-    """Try real MiniLM; on import error, DLL load failure, or any exception,
-    silently fall back to HashEmbedder. The system never crashes from a
-    missing torch."""
     global _MODEL_KIND
 
-    try:
-        from sentence_transformers import SentenceTransformer  # noqa: F401
-    except Exception as exc:  # noqa: BLE001 — ImportError, DLL errors, etc.
-        logger.warning("sentence_transformers_unavailable_using_hash_fallback",
-                       extra={"err": f"{exc.__class__.__name__}: {exc}"})
+    # Explicit hash mode — instant, no download
+    if model_name in ("hash", "hash-fallback", "fast", "demo"):
+        logger.info("hash_embedder_selected", extra={"model_name": model_name})
         _MODEL_KIND = "hash-fallback"
         return HashEmbedder(_DIM)
 
+    # --- Tier 1: sentence-transformers (needs torch) ---
     try:
         from sentence_transformers import SentenceTransformer
-        logger.info("loading_embedding_model", extra={"model": model_name})
+        logger.info("loading_embedding_model",
+                    extra={"model": model_name, "tier": "sentence-transformers"})
         model = SentenceTransformer(model_name, device="cpu")
+        _MODEL_KIND = "sentence-transformers"
         logger.info("embedding_model_loaded",
                     extra={"model": model_name, "kind": "sentence-transformers"})
-        _MODEL_KIND = "sentence-transformers"
         return model
     except Exception as exc:  # noqa: BLE001
-        logger.warning("sentence_transformers_load_failed_using_hash_fallback",
+        logger.warning("sentence_transformers_failed_trying_fastembed",
                        extra={"err": f"{exc.__class__.__name__}: {exc}"})
-        _MODEL_KIND = "hash-fallback"
-        return HashEmbedder(_DIM)
+
+    # --- Tier 2: fastembed (ONNX runtime, no torch DLLs) ---
+    try:
+        fast_model = "BAAI/bge-small-en-v1.5"
+        logger.info("loading_fastembed", extra={"model": fast_model})
+        wrapper = FastEmbedWrapper(fast_model)
+        _MODEL_KIND = "fastembed"
+        logger.info("fastembed_loaded", extra={"model": fast_model})
+        return wrapper
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("fastembed_failed_using_hash_fallback",
+                       extra={"err": f"{exc.__class__.__name__}: {exc}"})
+
+    # --- Tier 3: HashEmbedder (zero deps) ---
+    _MODEL_KIND = "hash-fallback"
+    return HashEmbedder(_DIM)
 
 
 def get_embedder(model_name: str):

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Smart Grid AI — Architecture</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 20px; }
+h1 { text-align: center; font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+.sub { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 20px; }
+
+/* ── PIPELINE ROW ── */
+.pipe { display: flex; gap: 0; margin: 10px 0; overflow-x: auto; }
+.step { flex: 1; min-width: 120px; border-radius: 0; padding: 10px 12px; border: 1px solid; position: relative; }
+.step:first-child { border-radius: 10px 0 0 10px; }
+.step:last-child  { border-radius: 0 10px 10px 0; }
+.step::after { content: '›'; position: absolute; right: -11px; top: 50%; transform: translateY(-50%); font-size: 20px; z-index: 5; color: #94a3b8; }
+.step:last-child::after { display: none; }
+.sn { font-size: 11px; font-weight: 800; margin-bottom: 3px; }
+.sd { font-size: 10px; line-height: 1.4; }
+.st { font-size: 9px; opacity: .7; margin-top: 2px; }
+
+.etl  { background: #fffbeb; border-color: #fde68a; }  .etl .sn  { color: #92400e; }
+.bm25 { background: #f0fdf4; border-color: #bbf7d0; }  .bm25 .sn { color: #15803d; }
+.guard{ background: #fef2f2; border-color: #fecaca; }  .guard .sn{ color: #dc2626; }
+.retr { background: #eff6ff; border-color: #bfdbfe; }  .retr .sn { color: #1d4ed8; }
+.stab { background: #f5f3ff; border-color: #ddd6fe; }  .stab .sn { color: #6d28d9; }
+.fail { background: #fff7ed; border-color: #fed7aa; }  .fail .sn { color: #c2410c; }
+.reco { background: #fdf4ff; border-color: #e9d5ff; }  .reco .sn { color: #7c3aed; }
+.eval { background: #ecfeff; border-color: #a5f3fc; }  .eval .sn { color: #0e7490; }
+
+.sec { font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase;
+       letter-spacing: .06em; margin: 18px 0 8px; border-left: 3px solid #6366f1; padding-left: 8px; }
+
+/* ── CARDS ── */
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.card { background: #fff; border-radius: 10px; padding: 11px 13px; border: 1px solid #e2e8f0; }
+.card h3 { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.card p  { font-size: 10.5px; color: #4b5563; line-height: 1.5; }
+.card .tag { font-size: 9px; background: #f1f5f9; color: #6366f1; padding: 1px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+
+.page-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 10px; }
+.pg { background: #fff; border-radius: 8px; padding: 8px 10px; border-left: 3px solid; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+.pg-name { font-size: 11px; font-weight: 700; color: #1e293b; }
+.pg-desc { font-size: 9.5px; color: #4b5563; margin-top: 2px; line-height: 1.4; }
+
+.footer { background: linear-gradient(135deg,#1d4ed8,#7c3aed); border-radius: 10px; padding: 12px 16px; color: #fff; margin-top: 10px; text-align: center; font-size: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h1>⚡ AI-Powered Smart Grid Energy Intelligence Assistant</h1>
+<p class="sub">Complete Architecture — Primary Query Flow: CSV → ETL → BM25 → 5 Agents → Groq LLM → Answer → Evaluation</p>
+
+<div class="sec">Primary Query Pipeline (Head to Toe)</div>
+<div class="pipe">
+  <div class="step etl">  <div class="sn">① ETL</div><div class="sd">CSV Load → Normalize → Clean → Aggregate → chunks.jsonl</div><div class="st">pandas · JSONL</div></div>
+  <div class="step bm25"> <div class="sn">② BM25</div><div class="sd">Build keyword index from 100 chunks → bm25_index.pkl</div><div class="st">rank-bm25</div></div>
+  <div class="step guard"><div class="sn">③ Guardrails</div><div class="sd">Block PII · injection attacks · off-topic queries</div><div class="st">regex · custom rules</div></div>
+  <div class="step retr"> <div class="sn">④ Retrieval</div><div class="sd">BM25 search → top-20 → RRF fusion → top-5 chunks</div><div class="st">rank-bm25 · RRF</div></div>
+  <div class="step stab"> <div class="sn">⑤ Stability</div><div class="sd">Grid Health Score 0–100 from voltage/freq/outages</div><div class="st">Python math</div></div>
+  <div class="step fail"> <div class="sn">⑥ Failure</div><div class="sd">Root cause rules → probability scores + evidence</div><div class="st">rule-based</div></div>
+  <div class="step reco"> <div class="sn">⑦ LLM Answer</div><div class="sd">Groq llama-3.3-70b → natural language answer + recommendations</div><div class="st">LangChain + Groq</div></div>
+  <div class="step eval"> <div class="sn">⑧ Evaluation</div><div class="sd">DeepEval + LLM Judge → faithfulness · accuracy · actionability %</div><div class="st">deepeval</div></div>
+</div>
+
+<div class="sec">Core Technology Choices</div>
+<div class="grid3">
+  <div class="card"><h3>🤖 LLM — Groq</h3><p>llama-3.3-70b-versatile. 200+ tokens/sec. Free tier. 10s timeout, 0 retries. Fallback chain: Groq → OpenAI → Template (offline).</p><span class="tag">langchain-groq</span></div>
+  <div class="card"><h3>🔍 Search — BM25</h3><p>Keyword index. Works offline. No GPU. No API key. TF-IDF weighted — perfect for technical grid domain vocabulary.</p><span class="tag">rank-bm25</span></div>
+  <div class="card"><h3>🗄️ Vector DB — ChromaDB</h3><p>Semantic search (disabled on Windows/Python 3.13 due to crash). BM25 is primary. ChromaDB activates on Linux production.</p><span class="tag">chromadb 1.5.9</span></div>
+  <div class="card"><h3>🔀 LangGraph</h3><p>StateGraph + MemorySaver for /chat/query endpoint. Sequential 6-node pipeline. Session memory across turns. NOT SqliteSaver (broke in 0.2.50+).</p><span class="tag">langgraph</span></div>
+  <div class="card"><h3>🔗 LangChain</h3><p>Unified LLM abstraction. ChatGroq, ChatOpenAI, ChatAnthropic all use same .invoke() interface. Swap provider by changing one config line.</p><span class="tag">langchain-core</span></div>
+  <div class="card"><h3>⚡ FastAPI</h3><p>Async ASGI server. Auto Swagger docs at /docs. Pydantic validation. 17 endpoints. uvicorn --loop asyncio (required for Python 3.13 Windows).</p><span class="tag">fastapi · uvicorn</span></div>
+</div>
+
+<div class="sec">LangGraph Agent Graph (/chat/query endpoint)</div>
+<div class="pipe">
+  <div class="step guard"><div class="sn">Orchestrator</div><div class="sd">Intent classify via Groq → routes to retrieval</div></div>
+  <div class="step retr"> <div class="sn">Grid Retrieval</div><div class="sd">BM25 search → top-5 chunks</div></div>
+  <div class="step stab"> <div class="sn">Stability</div><div class="sd">Stability telemetry analysis</div></div>
+  <div class="step fail"> <div class="sn">Failure Analysis</div><div class="sd">Root cause identification</div></div>
+  <div class="step reco"> <div class="sn">Recommendation</div><div class="sd">Groq generates recommendations</div></div>
+  <div class="step eval"> <div class="sn">Synthesize</div><div class="sd">Final answer written by Groq</div></div>
+</div>
+
+<div class="sec">Storage Layer</div>
+<div class="grid3">
+  <div class="card"><h3>📄 chunks.jsonl</h3><p>100 incident chunks produced by ETL. Source of truth for BM25 index and all dashboard analytics. Rebuilt on every Ingest.</p></div>
+  <div class="card"><h3>📝 qa_history.jsonl</h3><p>38 operator queries stored. Powers "Common questions" strip in Query Console. Production: replace with PostgreSQL + 90-day retention.</p></div>
+  <div class="card"><h3>📋 etl_history.jsonl</h3><p>16 ETL run records. Shows last ingest date/time in dashboard. Production: replace with PostgreSQL with tenant isolation.</p></div>
+</div>
+
+<div class="sec">13-Page React Frontend (localhost:5173)</div>
+<div class="page-grid">
+  <div class="pg" style="border-color:#14b8a6"><div class="pg-name">📊 Dashboard</div><div class="pg-desc">Grid Health Score, heatmap, timeline, telemetry summary, recent recommendations</div></div>
+  <div class="pg" style="border-color:#3b82f6"><div class="pg-name">💬 Query Console</div><div class="pg-desc">Natural language Q&A with agent trace, root causes, evidence chunks, evaluation</div></div>
+  <div class="pg" style="border-color:#f97316"><div class="pg-name">🗃️ ETL</div><div class="pg-desc">Upload CSV, select dataset, click Ingest. Shows ETL history and validation results</div></div>
+  <div class="pg" style="border-color:#22c55e"><div class="pg-name">⚡ Grid Stability</div><div class="pg-desc">Voltage, frequency, stability score trends. Risk distribution charts per region</div></div>
+  <div class="pg" style="border-color:#f43f5e"><div class="pg-name">🔥 Failure Analysis</div><div class="pg-desc">Root causes across dataset with probability scores and evidence links</div></div>
+  <div class="pg" style="border-color:#8b5cf6"><div class="pg-name">🏠 Smart Meter</div><div class="pg-desc">Household power consumption patterns. Peak usage hours. Demand-side stress</div></div>
+  <div class="pg" style="border-color:#f59e0b"><div class="pg-name">📡 Telemetry</div><div class="pg-desc">Live sensor time-series: voltage_mean, frequency_mean, demand_max — last 100 readings</div></div>
+  <div class="pg" style="border-color:#0ea5e9"><div class="pg-name">💡 Recommendations</div><div class="pg-desc">History of all AI-generated recommendations. Operator name, confidence, actions</div></div>
+  <div class="pg" style="border-color:#ec4899"><div class="pg-name">🤖 Agent Flow</div><div class="pg-desc">Multi-agent pipeline visualization. Which agents ran, duration, status, contribution</div></div>
+  <div class="pg" style="border-color:#6366f1"><div class="pg-name">🕐 Incident Timeline</div><div class="pg-desc">Chronological incidents by day/hour. Severity distribution over time</div></div>
+  <div class="pg" style="border-color:#84cc16"><div class="pg-name">🗺️ Heatmap Analytics</div><div class="pg-desc">Region × Severity matrix. Colour intensity = incident count. Maintenance prioritisation</div></div>
+  <div class="pg" style="border-color:#06b6d4"><div class="pg-name">🔮 Predictive AI</div><div class="pg-desc">Composite risk score per region. Transformer overload %, voltage deviation %, proactive alerts</div></div>
+  <div class="pg" style="border-color:#64748b"><div class="pg-name">⚙️ Settings / Admin</div><div class="pg-desc">Switch LLM provider, reset vector index, validate retrieval, view component health</div></div>
+</div>
+
+<div class="footer">
+  <strong>Complete flow:</strong> CSV data → ETL pipeline (pandas) → BM25 keyword index (rank-bm25) → FastAPI backend (uvicorn) → 5 custom agents (guardrails, retrieval, stability, failure, recommendation) → Groq LLM (llama-3.3-70b) → DeepEval + LLM Judge scoring → React frontend (13 pages, Tailwind, Recharts, Axios) → Operator sees grounded, evaluated, traceable answer in under 5 seconds.
+</div>
+
+</body>
+</html>

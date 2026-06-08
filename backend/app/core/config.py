@@ -44,12 +44,20 @@ class Settings(BaseSettings):
     # Supported: groq_large, groq_small, groq, openai, openai_mini, anthropic, gemini
     llm_fallback_chain: str = Field(default="groq_large")
 
+    # --- Chunking ---
+    # strategy: "sentence" | "fixed" | "incident"
+    chunk_strategy: str = Field(default="sentence")
+    chunk_size: int = Field(default=4)     # sentences (sentence) | chars (fixed)
+    chunk_overlap: int = Field(default=1)  # sentences | chars
+
     # --- Retrieval ---
     retrieval_top_k: int = Field(default=20)
     final_top_k: int = Field(default=5)
     rrf_semantic_weight: float = Field(default=0.6)
     rrf_keyword_weight: float = Field(default=0.4)
-    reranker_enabled: bool = Field(default=False)
+
+    # reranker_enabled=True: tries CrossEncoder, auto-falls back to ScoreFusion.
+    reranker_enabled: bool = Field(default=True)
 
     # CRAG: reformulate + retry when top score < threshold (0.0 = disabled).
     crag_relevance_threshold: float = Field(default=0.0)

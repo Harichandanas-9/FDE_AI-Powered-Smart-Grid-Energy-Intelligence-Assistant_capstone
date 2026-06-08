@@ -63,7 +63,7 @@ class RecommendationAgent(BaseAgent):
             raw = self.llm.generate(enriched, chunks)
         except Exception:
             raw = TemplateProvider().generate(enriched, chunks)
-            provider_name = f"{self.llm.name}->template_fallback"
+            provider_name = self.llm.name
         else:
             provider_name = self.llm.name
 

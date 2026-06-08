@@ -136,12 +136,20 @@ class TemplateProvider:
             })
 
         answer = (
-            f"Based on {len(chunks)} similar historical incidents (predominantly in "
-            f"{top_region}, severity '{top_sev}'), the most likely pattern is "
-            f"{top_status.replace('_', ' ')} with average voltage {avg_v:.1f} V and "
-            f"frequency {avg_f:.2f} Hz at peak demand {max_d:.2f} kW. The {len(causes)} "
-            f"probable cause(s) listed are derived from telemetry trends present in "
-            f"the retrieved evidence."
+            "Grid Analysis - " + top_region + " Zone\n\n"
+            "Based on " + str(len(chunks)) + " similar historical incidents "
+            "(predominantly in " + top_region + ", severity: " + top_sev + "), "
+            "the system identified a recurring pattern of " + top_status.replace("_"," ") + " conditions.\n\n"
+            "Key Telemetry Readings:\n"
+            "- Average Voltage: " + str(round(avg_v,1)) + " V (nominal 230V, deviation: " + str(round(abs(avg_v-230)/230*100,1)) + "%)\n"
+            "- Average Frequency: " + str(round(avg_f,2)) + " Hz (nominal 50Hz, drift: " + str(round(abs(avg_f-50),2)) + " Hz)\n"
+            "- Peak Demand: " + str(round(max_d,2)) + " kW\n\n"
+            "Root Cause Analysis:\n"
+            "The " + str(len(causes)) + " probable cause(s) were identified from telemetry trends "
+            "across " + str(len(chunks)) + " retrieved incidents. The dominant fault signature indicates "
+            + ("transformer stress and overload conditions" if top_status == "overload_risk" else "grid instability conditions")
+            + " consistent with peak demand patterns.\n\n"
+            "Severity: " + top_sev.upper() + " - Immediate operational attention recommended."
         )
 
         reasoning = (
@@ -216,18 +224,21 @@ class GroqProvider:
     URL = "https://api.groq.com/openai/v1/chat/completions"
 
     def __init__(self, settings: Settings):
-        self.api_key = settings.groq_api_key
-        self.model = settings.groq_model or settings.llm_model
+        # .strip() handles GROQ_API_KEY= gsk_... (leading space in .env)
+        self.api_key = getattr(settings, "groq_api_key", "").strip()
+        self.model   = (getattr(settings, "groq_model_large", "") or
+                        getattr(settings, "groq_model", "") or
+                        settings.llm_model or "llama-3.3-70b-versatile")
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
         import httpx
+        # NOTE: no response_format=json_object — not all Groq models support it
         payload = {
             "model": self.model,
             "temperature": 0.1,
-            "response_format": {"type": "json_object"},
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_user_prompt(query, chunks)},
+                {"role": "system", "content": SYSTEM_PROMPT + " Always respond with valid JSON only."},
+                {"role": "user",   "content": build_user_prompt(query, chunks)},
             ],
         }
         headers = {"Authorization": f"Bearer {self.api_key}",

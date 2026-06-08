@@ -58,6 +58,12 @@ def _try_build_bm25(app: FastAPI) -> None:
             return
         except Exception as exc:  # noqa: BLE001
             logger.warning("bm25_cache_load_failed", extra={"err": str(exc)})
+            # Delete stale pkl (often a Python-version pickle mismatch) so
+            # the rebuild-from-jsonl path runs cleanly on next attempt.
+            try:
+                cache_path.unlink(missing_ok=True)
+            except Exception:
+                pass
 
     if not chunks_path.exists():
         app.state.components["bm25"] = "no_chunks"

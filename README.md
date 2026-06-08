@@ -1,194 +1,305 @@
-# AI-Powered Smart Grid Energy Intelligence Assistant
+# ⚡ AI-Powered Smart Grid Energy Intelligence Assistant
 
-> **Capstone Project** — Full-stack RAG + Multi-Agent intelligence platform
-> that lets utility engineers investigate grid incidents in natural language.
-
-![status](https://img.shields.io/badge/build-complete-success) ![python](https://img.shields.io/badge/python-3.11%2B-blue) ![react](https://img.shields.io/badge/react-18-61dafb)
+> A full-stack AI platform that helps power grid operators diagnose faults, analyse telemetry, predict failures, and get instant evidence-backed recommendations — powered by RAG, multi-agent AI, and Groq LLM.
 
 ---
 
-## What it does
+## 🚀 Quick Start
 
-Operators type a question in plain English — *"Voltage instability in South
-Zone during evening peak — what are the likely causes?"* — and get:
+### Prerequisites
+- Python 3.11–3.13
+- Node.js 18+
+- Groq API key (free at https://console.groq.com)
 
-- **Grounded answer** with cited evidence chunks
-- **Root causes** with probabilities + the historical incidents that drove them
-- **Mitigation recommendations** with priority levels and rationale
-- **Grid Health Score** (0–100) computed deterministically
-- **Multi-agent trace** showing which stage contributed what
-- **Evaluation scores** (faithfulness, LLM-judge accuracy, format correctness)
-- **One-click PDF report** of the entire analysis
+### 1. Backend Setup
 
-All over a glassmorphism dashboard with per-page accents, animated charts, and
-a live WebSocket telemetry mode.
-
----
-
-## Tech stack
-
-| Layer | Stack |
-|---|---|
-| **Backend** | Python 3.11 · FastAPI · Uvicorn · pydantic-settings |
-| **AI / RAG** | LangChain · ChromaDB · sentence-transformers (MiniLM) · BM25 · Reciprocal Rank Fusion |
-| **Multi-agent** | 4 agents (Retrieval, Stability, Failure, Recommendation) + sequential orchestrator |
-| **Evaluation** | DeepEval · LLM-as-judge · deterministic heuristic metrics (always-on fallback) |
-| **Frontend** | React 18 · Vite · Tailwind CSS · Framer Motion · Recharts · Lucide icons |
-| **Realtime** | FastAPI WebSocket simulator |
-| **Auth** | JWT (PyJWT) · multi-tenant ready (off by default) |
-| **Reporting** | reportlab PDF export |
-| **Deploy** | Render (`render.yaml` — backend web + static frontend + 1 GB persistent disk) |
-
----
-
-## Build status — all 16 steps complete
-
-| # | Module | Where it lives |
-|---|---|---|
-| 1 | Architecture + folder structure | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
-| 2 | Backend foundation (FastAPI + `/health`) | `backend/app/main.py` |
-| 3 | Data ingestion pipeline | `backend/app/data/*` |
-| 4 | Embeddings + ChromaDB | `backend/app/rag/embeddings.py`, `vector_store.py` |
-| 5 | Hybrid search (BM25 + semantic + RRF) | `backend/app/rag/hybrid_retriever.py` |
-| 6 | RAG pipeline + `/analyze` | `backend/app/rag/rag_pipeline.py` |
-| 7 | Multi-agent orchestrator | `backend/app/agents/*` |
-| 8 | Analytics + dataset ETL endpoints | `backend/app/services/`, `api/routes_analytics.py`, `api/routes_datasets.py` |
-| 9 | Frontend foundation (Vite + Tailwind) | `frontend/src/` |
-| 10 | Premium UI (glass, animations) | `frontend/src/components/`, `pages/Dashboard.jsx`, `pages/ETL.jsx` |
-| 11 | Dashboard visuals (charts, gauges, heatmaps) | `frontend/src/components/charts/*` |
-| 12 | Frontend ↔ backend integration | all 12 pages live |
-| 13 | Real-time WebSocket telemetry + PDF export | `routes_ws.py`, `routes_pdf.py`, `useWebSocket.js` |
-| 14 | DeepEval + LLM-as-judge + heuristic | `backend/app/evaluation/*`, `EvalBadges.jsx` |
-| 15 | Render deployment | [`render.yaml`](render.yaml), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
-| 16 | Documentation pack | [`docs/`](docs/) |
-
-Also delivered as cross-cutting concerns:
-
-- **Input guardrails** (PII block/mask + topic restriction) — `backend/app/utils/guardrails.py`
-- **Multi-tenancy + JWT** — off by default; flip `MULTI_TENANCY_ENABLED=true` to enable
-- **LLM offline fallback** — `TemplateProvider` keeps `/analyze` working without any API key
-
----
-
-## Quick start (local — Windows / VS Code)
-
-```powershell
-# Open the project in VS Code: File -> Open Folder -> this folder.
-# All commands below run from terminals inside VS Code (Ctrl + `).
-
-# ───── 1. BACKEND (terminal 1) ─────
+```bash
 cd backend
-py -3.11 -m venv venv                  # or: python -m venv venv
-venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt        # core deps (~30 s)
-pip install -r requirements-ml.txt     # ML stack (~5 min first time)
-copy .env.example .env
-uvicorn app.main:app --reload --port 8000
 
-# ───── 2. FRONTEND (terminal 2) ─────
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-ml.txt
+
+# Configure environment
+# Edit .env and set your GROQ_API_KEY (remove leading space if present)
+# GROQ_API_KEY=gsk_your_key_here
+
+# Start backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop asyncio
+```
+
+### 2. Frontend Setup
+
+```bash
 cd frontend
-npm install                            # first time only (~1 min)
+npm install
 npm run dev
-
-# Open in browser:
-#   Frontend dashboard: http://localhost:5173/
-#   Backend Swagger UI: http://localhost:8000/docs
-#   Backend health:     http://localhost:8000/api/v1/health
 ```
 
-Then in the UI:
-1. Go to the **ETL** tab → upload the CSVs (links in [`datasets/README.md`](datasets/README.md))
-2. Click **Run ETL** on each row
-3. Return to **Dashboard** → see KPIs, gauge, region health, heatmap, timeline populate
-4. Click **Query Console** → ask questions in plain English
-
----
-
-## API surface
-
-| Endpoint | Purpose |
-|---|---|
-| `GET  /api/v1/health` | Liveness + component status |
-| `POST /api/v1/auth/login` | Issue JWT (form-encoded) |
-| `GET  /api/v1/auth/me` | Current principal |
-| `POST /api/v1/guardrails/validate-query` | Test guardrails on a string |
-| `POST /api/v1/ingest` | Run ingestion across all CSVs |
-| `POST /api/v1/embed` | Embed `chunks.jsonl` into Chroma |
-| `GET  /api/v1/datasets` | List CSVs in `datasets/` |
-| `POST /api/v1/datasets/upload` | Upload a CSV (multipart) |
-| `POST /api/v1/datasets/{filename}/process` | **Run ETL** on one file (ingest + embed) |
-| `DELETE /api/v1/datasets/{filename}` | Delete a CSV |
-| `GET  /api/v1/incidents` | Hybrid search + metadata filter |
-| `POST /api/v1/analyze` | **Headline endpoint** — multi-agent response |
-| `GET  /api/v1/grid-score` | Overall + per-region health |
-| `GET  /api/v1/heatmap` | Region × severity matrix |
-| `GET  /api/v1/timeline` | Severity-stacked over time |
-| `GET  /api/v1/telemetry` | Recent telemetry samples |
-| `GET  /api/v1/recommendations` | Last cached /analyze responses |
-| `POST /api/v1/evaluate` | DeepEval + LLM-judge + heuristic |
-| `POST /api/v1/export/pdf` | Download analyze response as PDF |
-| `WS   /api/v1/ws/telemetry` | Live telemetry stream |
-
-Full schemas at `http://localhost:8000/docs`.
-
----
-
-## Documentation map
-
-| Doc | Audience |
-|---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System design — diagrams, decisions, trade-offs |
-| [`docs/PROJECT_FLOW.md`](docs/PROJECT_FLOW.md) | Per-file responsibilities + request flow |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Render deployment walkthrough |
-| [`docs/PRESENTATION_GUIDE.md`](docs/PRESENTATION_GUIDE.md) | 10-minute panel demo runbook |
-| [`docs/PANEL_QA.md`](docs/PANEL_QA.md) | 20 likely panel questions + answers |
-| [`backend/README.md`](backend/README.md) | Backend run + test |
-| [`frontend/README.md`](frontend/README.md) | Frontend run + theme |
-| [`datasets/README.md`](datasets/README.md) | Where to download the CSVs |
-| [`notes/STEPS.md`](notes/STEPS.md) | Running log of build status + decisions |
-
----
-
-## Smoke tests (run from project root)
-
-```powershell
-python scripts\smoke_test_backend.py        # boots app in-process, hits /health
-python scripts\smoke_test_guardrails.py     # 13 test queries through guardrails
-python scripts\smoke_test_ingestion.py      # CSV -> chunks.jsonl
-python scripts\smoke_test_embeddings.py     # chunks.jsonl -> Chroma
-python scripts\smoke_test_search.py         # hybrid retrieve
-python scripts\smoke_test_analyze.py        # full /analyze pipeline (template fallback)
-python scripts\smoke_test_orchestrator.py   # multi-agent flow
-python scripts\smoke_test_analytics.py      # grid-score, heatmap, timeline
-python scripts\smoke_test_auth.py           # JWT round-trip + multi-tenancy
-python scripts\smoke_test_stream.py         # telemetry simulator
-python scripts\smoke_test_eval.py           # DeepEval + LLM-judge + heuristic
+### 3. Open Browser
+```
+http://localhost:5173
 ```
 
-All run independently of the server. Pass = `[smoke] OK ✓` at the end.
+### 4. First-time Data Setup
+1. Go to **ETL tab**
+2. Select `smart_grid_stability_augmented.csv`
+3. Click **Ingest**
+4. All tabs will populate with live data
 
 ---
 
-## Troubleshooting
+## 🏗️ Architecture
 
-| Symptom | Fix |
-|---|---|
-| `ModuleNotFoundError: pydantic_settings` | `pip install -r requirements.txt` didn't complete — re-run it |
-| `chromadb` install fails | Ensure Python 3.11 (`runtime.txt` pins this on Render) |
-| Sentence-transformers slow on first call | Normal — model downloads ~80 MB once, then cached |
-| Frontend can't reach backend | Make sure backend is on `:8000` and frontend proxy in `vite.config.js` points at it |
-| CORS error in browser | Add the frontend origin to `CORS_ORIGINS` in `.env` |
-| Empty dashboard | Run ETL once: upload CSVs → click "Run ETL" |
-| Off-topic queries get refused | Working as intended — see [`docs/PANEL_QA.md`](docs/PANEL_QA.md) Q11 |
+```
+CSV Datasets → ETL Pipeline → BM25 Index + JSONL
+                                      ↓
+User Query → Guardrails → Retrieval → Stability Analysis
+                                          → Failure Analysis
+                                            → Groq LLM Recommendation
+                                              → DeepEval Scoring
+```
+
+### Pipeline Flow
+| Step | Agent | Technology | Purpose |
+|------|-------|-----------|---------|
+| 1 | ETL | pandas | Load, clean, aggregate CSV → 100 chunks |
+| 2 | BM25 Index | rank-bm25 | Build keyword search index |
+| 3 | Guardrails | regex | Block PII, injection, off-topic |
+| 4 | Retrieval | BM25 + text fallback | Find top-5 relevant incidents |
+| 5 | Stability | Python math | Grid Health Score 0–100 |
+| 6 | Failure | Rule-based | Root cause identification |
+| 7 | Recommendation | Groq llama-3.3-70b | Natural language answer |
+| 8 | Evaluation | DeepEval + LLM Judge | Grade answer quality |
 
 ---
 
-## License & attribution
+## 🤖 Tech Stack
 
-Datasets used (per capstone requirements):
-- [Kaggle — Smart Grid Stability](https://www.kaggle.com/datasets/pcbreviglieri/smart-grid-stability)
-- [UCI — Individual Household Electric Power Consumption](https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption)
-- [Kaggle — Electric Power Consumption](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set)
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **LLM** | Groq (llama-3.3-70b) | Fast inference, free tier |
+| **LLM Fallback** | Template Provider | Offline, deterministic |
+| **Retrieval** | BM25 + Plain-text fallback | Keyword search, no GPU |
+| **Vector DB** | ChromaDB | Semantic search (Linux/Mac) |
+| **RAG** | Custom pipeline | Grounded, evidence-based answers |
+| **Agents** | Custom sequential | Auditable, deterministic |
+| **Session Memory** | LangGraph + MemorySaver | Multi-turn conversation |
+| **LLM Orchestration** | LangChain | Unified LLM abstraction |
+| **Evaluation** | DeepEval + LLM Judge | Faithfulness, relevancy scoring |
+| **Backend** | FastAPI + uvicorn | Async API, auto Swagger docs |
+| **Frontend** | React 18 + Vite | 13-page dashboard |
+| **Charts** | Recharts | Heatmap, timeline, telemetry |
+| **Tracing** | LangSmith (optional) | Production observability |
 
-Project structure, AI pipeline, and UI built for capstone evaluation purposes.
+---
+
+## 📱 Frontend Pages (13)
+
+| Page | Route | Purpose |
+|------|-------|---------|
+| Dashboard | `/` | Grid health score, heatmap, timeline, predictions |
+| Query Console | `/query` | Natural language Q&A with agent trace |
+| ETL | `/etl` | Upload CSVs, ingest data, validate retrieval |
+| Grid Stability | `/stability` | Voltage/frequency/stability trends |
+| Failure Analysis | `/failure` | Root causes with probability scores |
+| Smart Meter | `/meter` | Household power consumption patterns |
+| Telemetry | `/telemetry` | Raw sensor time-series (last 100 readings) |
+| Recommendations | `/recommendations` | History of AI-generated recommendations |
+| Agent Flow | `/agents` | Multi-agent pipeline visualization |
+| Incident Timeline | `/timeline` | Chronological incident view |
+| Heatmap Analytics | `/heatmap` | Region × Severity matrix |
+| Predictive AI | `/predict` | Composite failure risk per region |
+| Settings / Admin | `/settings` | LLM provider, index management |
+
+---
+
+## 🗂️ Project Structure
+
+```
+backend/
+├── app/
+│   ├── main.py              # FastAPI entry point
+│   ├── core/
+│   │   ├── config.py        # Settings from .env
+│   │   ├── lifespan.py      # Startup/shutdown
+│   │   ├── llm_router.py    # LLM fallback chain
+│   │   └── logging.py       # Structured logging
+│   ├── agents/
+│   │   ├── orchestrator.py  # 5-agent sequential pipeline
+│   │   ├── retrieval_agent.py
+│   │   ├── stability_agent.py
+│   │   ├── failure_agent.py
+│   │   ├── recommendation_agent.py
+│   │   ├── escalation_agent.py  # A2A conditional escalation
+│   │   └── graph.py         # LangGraph StateGraph (chat endpoint)
+│   ├── rag/
+│   │   ├── hybrid_retriever.py  # BM25 + text fallback + CRAG
+│   │   ├── bm25_index.py
+│   │   ├── embeddings.py    # Hash embedder (no torch required)
+│   │   ├── llm.py           # Groq/OpenAI/Template providers
+│   │   └── vector_store.py  # ChromaDB wrapper
+│   ├── api/
+│   │   ├── routes_analyze.py    # POST /analyze (main query)
+│   │   ├── routes_chat.py       # POST /chat/query (LangGraph)
+│   │   ├── routes_datasets.py   # ETL pipeline
+│   │   ├── routes_analytics.py  # Dashboard data
+│   │   ├── routes_predict.py    # Predictive AI
+│   │   └── routes_eval.py       # DeepEval evaluation
+│   ├── cache/
+│   │   └── semantic_cache.py    # Cosine similarity cache
+│   ├── data/
+│   │   ├── ingestion_pipeline.py
+│   │   ├── loader.py
+│   │   ├── normalizer.py
+│   │   ├── cleaner.py
+│   │   └── aggregator.py
+│   ├── evaluation/
+│   │   ├── deepeval_runner.py
+│   │   ├── llm_judge.py
+│   │   └── metrics.py       # Heuristic fallback
+│   └── services/
+│       ├── analytics_service.py
+│       ├── event_bus.py
+│       └── feedback_store.py
+├── datasets/                # Raw CSV files
+├── data_processed/          # chunks.jsonl, bm25_index.pkl
+├── requirements.txt
+├── requirements-ml.txt
+└── .env                     # API keys (not committed)
+
+frontend/
+├── src/
+│   ├── App.jsx              # Router (13 pages)
+│   ├── pages/               # All 13 page components
+│   ├── components/          # Charts, cards, layout
+│   └── services/api.js      # Axios client + interceptors
+└── vite.config.js           # Proxy to backend:8000
+```
+
+---
+
+## ⚙️ Configuration (.env)
+
+```env
+# LLM Provider (groq recommended — fastest, free tier)
+LLM_PROVIDER=groq
+GROQ_API_KEY=gsk_your_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# Optional fallbacks
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+
+# Paths
+DATA_DIR=./datasets
+CHROMA_PERSIST_DIR=../chroma_store
+
+# Embedding model (hash = no torch required, works on all platforms)
+EMBEDDING_MODEL=hash
+
+# Optional LangSmith tracing
+LANGCHAIN_TRACING_V2=false
+LANGCHAIN_API_KEY=
+```
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/analyze` | Main query → 5-agent pipeline |
+| POST | `/api/v1/chat/query` | LangGraph multi-turn chat |
+| GET | `/api/v1/health` | System health + component status |
+| POST | `/api/v1/datasets/{file}/process` | ETL ingest |
+| GET | `/api/v1/datasets` | List available datasets |
+| GET | `/api/v1/grid-score` | Overall grid health score |
+| GET | `/api/v1/heatmap` | Region × severity matrix |
+| GET | `/api/v1/timeline` | Incident timeline |
+| GET | `/api/v1/predict` | Predictive failure intelligence |
+| POST | `/api/v1/evaluate` | DeepEval + LLM Judge scoring |
+| GET | `/api/v1/incidents` | Incident browse |
+| GET | `/docs` | Swagger UI (auto-generated) |
+
+---
+
+## 🛡️ Guardrails
+
+Input validation before any processing:
+- **PII blocking** — SSN, credit cards, passports, API keys
+- **PII masking** — email, phone, IP address (query still processed)
+- **Injection detection** — "ignore previous instructions" patterns
+- **Topic filtering** — off-topic queries redirected
+- **Greeting pass-through** — "hi", "hello", "help" allowed through
+
+---
+
+## 📊 Evaluation Framework
+
+Every AI response can be scored on demand:
+
+| Metric | Tool | Measures |
+|--------|------|---------|
+| Faithfulness | DeepEval | Did answer contradict retrieved evidence? |
+| Answer Relevancy | DeepEval | Did answer address the question? |
+| Accuracy | LLM Judge (Groq) | Factual grounding in evidence |
+| Completeness | LLM Judge | Covers causes, recommendations, reasoning |
+| Actionability | LLM Judge | Practical operational steps |
+| Format | Heuristic | Schema correctness |
+
+All metrics fall back to deterministic heuristic scoring when LLM API is unavailable.
+
+---
+
+## 🔄 Fallback Architecture
+
+```
+LLM: Groq → OpenAI → Anthropic → Template (offline)
+Search: BM25 → Plain-text keyword match → Empty
+Storage: ChromaDB → chunks.jsonl (JSONL always works)
+Evaluation: DeepEval → Heuristic scorer
+```
+
+---
+
+## 📋 Datasets
+
+| File | Records | Description |
+|------|---------|-------------|
+| `smart_grid_stability_augmented.csv` | 100 rows | Grid stability with voltage, frequency, stability scores |
+| `household_power_consumption.csv` | 2M rows | Household-level power consumption |
+| `electric_power_consumption.csv` | 2M rows | Electric grid consumption data |
+
+---
+
+## ⚠️ Known Limitations
+
+| Limitation | Reason | Production Fix |
+|-----------|--------|---------------|
+| ChromaDB disabled on Windows/Python 3.13 | Crash bug in v1.5.9 | Upgrade ChromaDB or deploy on Linux |
+| BM25 startup warning | Pickle version mismatch on first run | Run ETL once to rebuild locally |
+| Groq API needs internet | Corporate firewall may block api.groq.com | Use local Ollama or whitelist the domain |
+| JSONL history storage | Demo simplicity | Replace with PostgreSQL + 90-day retention |
+| In-memory semantic cache | Lost on restart | Replace with Redis |
+
+---
+
+## 🎯 Demo Script
+
+1. **Start backend:** `python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop asyncio`
+2. **Start frontend:** `npm run dev`
+3. **ETL tab** → Select `smart_grid_stability_augmented.csv` → Click **Ingest**
+4. **Query Console** → Ask: *"Voltage instability in South Zone during peak demand. What are the causes?"*
+5. **Click "Run evaluation"** to see DeepEval scores
+6. **Show Predictive AI tab** for proactive failure detection
+
+---
+
+## 👥 Team
+
+Capstone Project — AI-Powered Smart Grid Energy Intelligence Assistant
+
+---
+
+*Built with FastAPI, React, LangChain, LangGraph, Groq, DeepEval, BM25, ChromaDB*

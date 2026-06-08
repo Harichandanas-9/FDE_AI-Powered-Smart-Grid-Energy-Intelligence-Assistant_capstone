@@ -251,6 +251,13 @@ async def _process_dataset_inner(filename, request, principal, log, _json, _tb):
             pass
         request.app.state.bm25_index = bm25
         log.info("etl_bm25_rebuilt", extra={"n_docs": len(rows)})
+        # CRITICAL: reset cached orchestrator so next query uses the NEW bm25 index
+        # Without this, the first query after ETL still uses bm25_index=None
+        try:
+            from app.api import routes_analyze
+            routes_analyze._ORCH = None
+        except Exception:
+            pass
     except Exception as exc:  # noqa: BLE001
         log.warning("etl_bm25_rebuild_failed", extra={"err": str(exc)})
 

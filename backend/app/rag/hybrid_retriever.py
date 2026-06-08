@@ -92,6 +92,7 @@ class HybridRetriever:
         sem_ids: List[str] = []
         sem_docs: Dict[str, str] = {}
         sem_meta: Dict[str, Dict] = {}
+        sem_scores_raw: Dict[str, float] = {}   # chunk_id → cosine similarity
         try:
             from app.rag.vector_store import _CLIENT as _chroma_client
             if _chroma_client is not None:
@@ -100,18 +101,58 @@ class HybridRetriever:
                     self._collection(), q_emb, top_k=candidates, where=where
                 )
                 sem_ids = sem_res.get("ids", [[]])[0]
+                # Chroma returns cosine distances (0=identical, 2=opposite).
+                # Convert to similarity: sim = 1 - distance (clamped to [0,1]).
+                raw_distances = sem_res.get("distances", [[]])[0]
                 for i, cid in enumerate(sem_ids):
                     sem_docs[cid] = sem_res.get("documents", [[]])[0][i]
                     sem_meta[cid] = sem_res.get("metadatas", [[]])[0][i]
+                    dist = raw_distances[i] if i < len(raw_distances) else 1.0
+                    sem_scores_raw[cid] = max(0.0, 1.0 - float(dist))
             else:
                 logger.info("semantic_search_skipped_chroma_not_initialized")
         except Exception as exc:  # noqa: BLE001 — fall back to keyword-only
             logger.warning("semantic_retrieval_failed", extra={"err": str(exc)})
 
-        # --- 2. Keyword search via BM25 ---
+        # --- 2. Keyword search via BM25 (with plain-text fallback) ---
         kw_ranked: List[tuple] = []
+        bm25_scores_raw: Dict[str, float] = {}   # chunk_id → raw BM25 score
         if self.bm25 is not None:
             kw_ranked = self.bm25.search(query, top_k=candidates)
+            bm25_scores_raw = {cid: score for cid, score in kw_ranked}
+        else:
+            # BM25 not available — use simple keyword match over chunks.jsonl
+            try:
+                import json as _json
+                from app.utils.paths import resolve_dir
+                chunks_path = resolve_dir("./data_processed", create=False) / "chunks.jsonl"
+                if chunks_path.exists():
+                    query_tokens = set(query.lower().split())
+                    scored = []
+                    with chunks_path.open("r", encoding="utf-8") as _f:
+                        for _line in _f:
+                            _line = _line.strip()
+                            if not _line:
+                                continue
+                            try:
+                                chunk = _json.loads(_line)
+                                text_lower = chunk.get("text", "").lower()
+                                # score = number of query tokens found in text
+                                score = sum(1 for tok in query_tokens if tok in text_lower)
+                                if score > 0:
+                                    scored.append((chunk["id"], score, chunk))
+                            except Exception:
+                                continue
+                    scored.sort(key=lambda x: -x[1])
+                    for cid, score, chunk in scored[:candidates]:
+                        kw_ranked.append((cid, float(score)))
+                        bm25_scores_raw[cid] = float(score)
+                        sem_docs[cid] = chunk.get("text", "")
+                        sem_meta[cid] = chunk.get("metadata", {})
+                    if kw_ranked:
+                        logger.info("fallback_text_search", extra={"n": len(kw_ranked), "query": query[:50]})
+            except Exception as exc:
+                logger.warning("fallback_text_search_failed", extra={"err": str(exc)})
 
         # --- 3. RRF fusion ---
         sem_scores = _rrf(sem_ids, weight=self.settings.rrf_semantic_weight)
@@ -157,14 +198,19 @@ class HybridRetriever:
             extra={"query_len": len(query), "n_semantic": len(sem_ids),
                    "n_keyword": len(kw_ranked), "n_returned": len(results)},
         )
-        # --- 6. Optional cross-encoder reranking ---
+        # --- 6. Optional reranking (CrossEncoder → ScoreFusion auto-fallback) ---
         if self.settings.reranker_enabled and results:
             try:
                 from app.rag.reranker import rerank
                 results = rerank(
-                    query, results,
+                    query,
+                    results,
                     model_name=self.settings.reranker_model,
                     top_k=top_k,
+                    sem_scores=sem_scores_raw,
+                    bm25_scores=bm25_scores_raw,
+                    sem_weight=self.settings.rrf_semantic_weight,
+                    bm25_weight=self.settings.rrf_keyword_weight,
                 )
                 logger.info("reranked", extra={"n": len(results)})
             except Exception as exc:  # noqa: BLE001
