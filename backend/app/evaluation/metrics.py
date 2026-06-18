@@ -28,6 +28,7 @@ _STOPWORDS = {
 
 
 def _tok(text: str) -> set:
+    """Tokenize text to a set of meaningful lowercase words, filtering stopwords."""
     return set(t for t in _TOKEN.findall((text or "").lower()) if t not in _STOPWORDS)
 
 
@@ -84,6 +85,7 @@ def format_correctness(payload: Dict[str, Any]) -> float:
 
 
 def hallucination_risk(faith: float) -> float:
+    """Return 1 - faithfulness, clipped to [0, 1] — higher means higher hallucination risk."""
     return round(max(0.0, 1.0 - faith), 3)
 
 

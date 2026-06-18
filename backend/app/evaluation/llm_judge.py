@@ -34,6 +34,7 @@ Score each dimension on a 1-5 integer scale and respond with ONLY this JSON:
 
 
 def _normalize(raw: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert 1-5 integer judge scores to [0, 1] floats."""
     def n(v):
         try:
             return max(0.0, min(1.0, (float(v) - 1) / 4))
@@ -49,6 +50,7 @@ def _normalize(raw: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _heuristic_judge(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Compute judge scores deterministically from heuristic metrics when no LLM is available."""
     h = heur.evaluate(payload)
     return {
         "accuracy":      h["faithfulness"],
@@ -62,6 +64,11 @@ def _heuristic_judge(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def judge(query: str, payload: Dict[str, Any],
           settings: Settings | None = None) -> Dict[str, Any]:
+    """Score an /analyze response on accuracy, completeness, and actionability.
+
+    Uses the LLM router when an API key is present; falls back to heuristic
+    scoring silently on any LLM failure.
+    """
     settings = settings or get_settings()
 
     slim = {

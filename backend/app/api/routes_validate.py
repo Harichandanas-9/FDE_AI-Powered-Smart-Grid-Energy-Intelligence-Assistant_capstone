@@ -21,5 +21,6 @@ router = APIRouter(prefix="/guardrails", tags=["guardrails"])
     summary="Run input guardrails (PII + topic) on a query",
 )
 async def validate(req: ValidateQueryRequest) -> ValidateQueryResponse:
+    """Run PII detection and topic-relevance guardrails on a query and return the allow/deny verdict."""
     verdict = validate_query(req.query)
     return ValidateQueryResponse(**verdict.to_dict())

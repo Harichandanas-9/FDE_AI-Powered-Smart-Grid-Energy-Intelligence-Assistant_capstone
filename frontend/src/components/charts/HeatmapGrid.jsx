@@ -1,7 +1,7 @@
 /**
- * Region × Severity heatmap.
- * Cells are colored by severity hue and shaded by count intensity.
- * Click a cell -> onSelect({ region, severity })
+ * HeatmapGrid — interactive region × severity matrix.
+ * Each cell is coloured by its severity hue and shaded by count intensity relative to
+ * the maximum count in the matrix. Clicking a non-empty cell calls onSelect({ region, severity, count }).
  */
 const COLORS = {
   low:      '#A7F1DE',
@@ -23,6 +23,7 @@ export default function HeatmapGrid({
       </div>
     )
   }
+  /* Normalise cell opacity against the highest count so low-count cells remain visible. */
   const maxV = matrix.flat().reduce((m, x) => Math.max(m, x), 0) || 1
 
   return (

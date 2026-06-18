@@ -30,8 +30,11 @@ logger = get_logger(__name__)
 
 
 class AgentOrchestrator:
+    """Owns the shared envelope and drives the sequential A2A agent pipeline."""
+
     def __init__(self, settings: Optional[Settings] = None,
                  bm25_index: Optional[BM25Index] = None):
+        """Instantiate all pipeline agents and wire up the shared retriever and LLM provider."""
         self.settings = settings or get_settings()
         retriever = HybridRetriever(self.settings, bm25_index=bm25_index)
         llm = get_provider(self.settings)
@@ -52,6 +55,12 @@ class AgentOrchestrator:
     def run(self, query: str, *, tenant_id: str = "default",
             filters: Optional[Dict[str, Any]] = None,
             top_k: Optional[int] = None) -> Dict[str, Any]:
+        """Run the full agent pipeline for a query and return the completed envelope.
+
+        Guardrails are evaluated first; if the query is refused the pipeline short-circuits
+        and returns immediately. Otherwise, each agent mutates the envelope in sequence with
+        a conditional escalation branch inserted after StabilityAgent when health is critical.
+        """
         t0 = time.time()
 
         # ----- Guardrails (synchronous, before any agent fires) -----

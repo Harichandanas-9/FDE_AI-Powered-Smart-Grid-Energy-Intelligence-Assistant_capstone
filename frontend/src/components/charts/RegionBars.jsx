@@ -1,3 +1,8 @@
+/**
+ * RegionBars — horizontal bar chart of per-region grid health scores.
+ * Bars are colour-coded red/orange/mint by score threshold and sorted ascending so
+ * the most at-risk region appears at the top. Clicking a bar calls onSelect(regionName).
+ */
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -7,6 +12,7 @@ import {
  * Props: { perRegion: { regionName: score } }
  */
 export default function RegionBars({ perRegion = {}, height = 260, onSelect }) {
+  /* Sort ascending so weakest region always appears first (worst on top). */
   const data = Object.entries(perRegion)
     .map(([region, score]) => ({ region, score }))
     .sort((a, b) => a.score - b.score)

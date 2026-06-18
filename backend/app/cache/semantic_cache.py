@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 
 
 def _cosine(a: List[float], b: List[float]) -> float:
+    """Compute cosine similarity between two equal-length float vectors."""
     dot = sum(x * y for x, y in zip(a, b))
     ma  = math.sqrt(sum(x * x for x in a))
     mb  = math.sqrt(sum(x * x for x in b))
@@ -18,13 +19,21 @@ def _cosine(a: List[float], b: List[float]) -> float:
 
 
 class SemanticCache:
+    """Thread-safe in-memory cache that matches queries by embedding similarity.
+
+    A cache hit is declared when the cosine similarity between the incoming
+    query embedding and a stored entry meets or exceeds the threshold.
+    """
+
     def __init__(self, threshold: float = 0.92, max_items: int = 500) -> None:
+        """Initialize the cache with a similarity threshold and maximum capacity."""
         self._lock      = threading.Lock()
         self._entries: List[Tuple[List[float], str, Any]] = []
         self._threshold = threshold
         self._max       = max_items
 
     def get(self, query_emb: List[float]) -> Optional[Any]:
+        """Return the cached result for the nearest matching query, or None on a miss."""
         with self._lock:
             best, best_r = 0.0, None
             for emb, _, result in self._entries:
@@ -37,22 +46,27 @@ class SemanticCache:
         return None
 
     def put(self, query_emb: List[float], query: str, result: Any) -> None:
+        """Store a (embedding, query, result) triple, evicting the oldest half when full."""
         with self._lock:
             if len(self._entries) >= self._max:
+                # Evict oldest half to keep memory bounded
                 self._entries = self._entries[-(self._max // 2):]
             self._entries.append((query_emb, query, result))
 
     def clear(self) -> None:
+        """Remove all cached entries."""
         with self._lock:
             self._entries.clear()
 
     @property
     def size(self) -> int:
+        """Return the current number of cached entries."""
         with self._lock:
             return len(self._entries)
 
 
 def _build() -> SemanticCache:
+    """Create a SemanticCache configured from app settings, with safe defaults on error."""
     try:
         from app.core.config import get_settings
         s = get_settings()

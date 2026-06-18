@@ -48,7 +48,7 @@ def _try_deepeval(query: str, answer: str, contexts: List[str]) -> Dict[str, flo
 
 
 def _has_llm() -> bool:
-    """True if at least one LLM key is configured."""
+    """Return True if at least one LLM API key is present in settings."""
     try:
         s = get_settings()
         return bool(
@@ -63,6 +63,11 @@ def _has_llm() -> bool:
 
 def run(query: str, payload: Dict[str, Any],
         settings: Settings | None = None) -> Dict[str, Any]:
+    """Evaluate an /analyze response with DeepEval when available, else heuristic metrics.
+
+    Returns a dict of normalized metric scores under consistent keys regardless of which
+    evaluation path was taken.
+    """
     settings = settings or get_settings()
     answer   = payload.get("answer") or ""
     contexts = [c.get("text", "") for c in (payload.get("retrieved") or [])]

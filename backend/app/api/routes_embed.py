@@ -33,6 +33,7 @@ router = APIRouter(prefix="/embed", tags=["embed"])
 
 
 def _read_jsonl(path: Path) -> List[dict]:
+    """Read a JSONL file and return parsed rows, skipping malformed lines with a warning."""
     if not path.exists():
         raise HTTPException(
             status_code=400,
@@ -57,6 +58,11 @@ def _read_jsonl(path: Path) -> List[dict]:
 
 @router.post("", response_model=EmbedResponse, summary="Embed chunks + upsert to Chroma")
 async def embed(req: EmbedRequest, request: Request) -> EmbedResponse:
+    """Read chunks from a JSONL file and upsert embeddings into the ChromaDB collection.
+
+    ChromaDB upsert is currently disabled on Windows/Python 3.13 for stability;
+    the endpoint returns a success response so the frontend proceeds normally.
+    """
     from app.utils.paths import resolve_dir
     settings = get_settings()
 
@@ -98,6 +104,7 @@ async def embed(req: EmbedRequest, request: Request) -> EmbedResponse:
 
 @router.get("/status", summary="Vector store status")
 async def status() -> Dict:
+    """Return the current ChromaDB collection size, embedding model, and a sample of stored IDs."""
     settings = get_settings()
     try:
         client = get_client(settings.chroma_persist_dir)

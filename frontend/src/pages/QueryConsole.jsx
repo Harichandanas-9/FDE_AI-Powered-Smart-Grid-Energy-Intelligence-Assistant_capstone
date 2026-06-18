@@ -1,3 +1,8 @@
+/**
+ * QueryConsole — chat-style interface for querying the multi-agent backend.
+ * Chat history is persisted in sessionStorage across tab navigations.
+ * The sidebar shows the agent trace, root causes, and retrieved evidence for the last response.
+ */
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -59,6 +64,7 @@ export default function QueryConsole() {
     } finally { setBusy(false) }
   }
 
+  /** Copies a past question into the input field and focuses it for quick reuse. */
   const useQuestion = (q) => {
     setQuery(q)
     // small UX touch — scroll the input into view
@@ -171,6 +177,11 @@ export default function QueryConsole() {
   )
 }
 
+/**
+ * BotBubble — renders a single assistant response message.
+ * Handles three status variants: 'refused' (guardrail block), 'error', and successful 'ok'.
+ * Shows inline recommendations and a lazy EvalBadges widget for OK responses.
+ */
 function BotBubble({ p }) {
   if (!p) return null
   if (p.status === 'refused') {
@@ -218,6 +229,10 @@ function BotBubble({ p }) {
   )
 }
 
+/**
+ * SidePanel — right column inspector that shows the agent trace, root causes,
+ * and retrieved evidence chunks from the most recent bot response.
+ */
 function SidePanel({ last }) {
   if (!last) {
     return (

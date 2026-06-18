@@ -8,8 +8,15 @@ logger = get_logger(__name__)
 
 
 def retrieve(state: dict) -> dict:
+    """LangGraph node: fetch relevant incidents from the hybrid index and optionally summarise them.
+
+    When query severity is HIGH, restricts the retrieval filter to HIGH-severity incidents only.
+    An optional LLM call produces a concise relevance summary; the raw docs are always returned
+    regardless of whether the summary call succeeds.
+    """
     query    = state.get("query", "")
     severity = state.get("severity", "LOW")
+    # Narrow to high-severity incidents when the orchestrator classified the query as HIGH
     where    = {"severity": "HIGH"} if severity == "HIGH" else None
 
     with node_span("grid_retrieval"):

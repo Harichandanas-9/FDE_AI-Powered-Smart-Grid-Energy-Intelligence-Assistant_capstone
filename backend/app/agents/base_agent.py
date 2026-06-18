@@ -44,6 +44,7 @@ class BaseAgent(ABC):
     name: str = "base"
 
     def __init__(self, settings: Settings):
+        """Store application settings for use by concrete agent implementations."""
         self.settings = settings
 
     def execute(self, envelope: Dict[str, Any]) -> Dict[str, Any]:

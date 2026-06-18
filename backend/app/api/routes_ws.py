@@ -35,6 +35,12 @@ async def ws_telemetry(
     rate: float = Query(default=1.0, ge=0.1, le=10.0),
     token: Optional[str] = Query(default=None),
 ):
+    """Stream telemetry ticks over a WebSocket at the requested rate.
+
+    In multi-tenancy mode a valid JWT is required; in single-tenant mode the token
+    is optional and decoded best-effort to capture tenant context. Each JSON tick
+    is annotated with the resolved tenant_id before being sent.
+    """
     settings = get_settings()
 
     # ---- Optional JWT check ----

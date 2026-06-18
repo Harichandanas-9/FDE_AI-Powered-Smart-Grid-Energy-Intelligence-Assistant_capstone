@@ -44,6 +44,7 @@ LLM_PROVIDERS = ["groq", "gemini", "openai", "anthropic", "ollama", "template"]
 
 
 def _vector_count() -> Optional[int]:
+    """Return the number of vectors currently stored in the ChromaDB collection, or None on error."""
     try:
         from app.rag.vector_store import get_client, get_or_create_collection, count
         s = get_settings()
@@ -54,6 +55,7 @@ def _vector_count() -> Optional[int]:
 
 @router.get("/config", summary="Active system configuration (read-only)")
 async def get_config(principal: dict = Depends(get_current_principal)) -> Dict[str, Any]:
+    """Return the active system configuration including provider, model, embedding, and vector-store info."""
     s = get_settings()
     has_key = bool(
         (s.llm_provider == "groq" and s.groq_api_key)
@@ -78,6 +80,8 @@ async def get_config(principal: dict = Depends(get_current_principal)) -> Dict[s
 
 
 class ConfigUpdate(BaseModel):
+    """Request body for runtime LLM provider/model switching."""
+
     llm_provider: Optional[str] = None
     llm_model: Optional[str] = None
 
@@ -87,6 +91,11 @@ async def set_config(
     body: ConfigUpdate, request: Request,
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Switch the LLM provider and/or model at runtime without restarting the server.
+
+    The cached orchestrator and RAG pipeline are invalidated so the next request
+    picks up the new provider settings.
+    """
     s = get_settings()
     changed = {}
     if body.llm_provider and body.llm_provider in LLM_PROVIDERS:
@@ -113,6 +122,7 @@ async def set_config(
 async def reset_index(
     request: Request, principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Drop and recreate the ChromaDB vector collection, also invalidating the BM25 index and analytics cache."""
     s = get_settings()
     try:
         from app.rag.vector_store import get_client, reset_collection
@@ -133,6 +143,8 @@ async def reset_index(
 
 
 class ValidateBody(BaseModel):
+    """Request body for the validate-retrieval smoke test."""
+
     query: str = "transformer overload during peak demand causing voltage instability"
     top_k: int = 5
 
@@ -142,6 +154,10 @@ async def validate_retrieval(
     body: ValidateBody, request: Request,
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Run a test query through the hybrid retriever and return the top-k hits with latency.
+
+    Useful for confirming that the vector index is populated and retrieval is functioning.
+    """
     s = get_settings()
     t0 = time.time()
     try:

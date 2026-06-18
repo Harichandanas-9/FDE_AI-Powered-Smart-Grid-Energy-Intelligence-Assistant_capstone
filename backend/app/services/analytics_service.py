@@ -114,6 +114,7 @@ def grid_health_score(tenant_id: str) -> Dict[str, Any]:
         per_region_acc[region]["f"].append(abs(f - NOM_F))
 
     def _score(stab_vals, v_vals, f_vals, n_out=0):
+        # Weighted combination: 40% stability, 30% voltage, 30% frequency, minus outage penalty
         avg_stab = sum(stab_vals) / len(stab_vals) if stab_vals else 0
         max_v = max(v_vals) if v_vals else 0
         max_f = max(f_vals) if f_vals else 0
@@ -188,6 +189,7 @@ def telemetry_summary(tenant_id: str, limit: int = 100) -> Dict[str, Any]:
     rows = _fetch_all(tenant_id)
     # Sort by window_start desc, take first `limit`
     def _ts(r):
+        # Sort key: ISO-8601 window_start strings sort correctly as plain strings
         ws = r["metadata"].get("window_start") or ""
         return ws
     rows.sort(key=_ts, reverse=True)
@@ -231,6 +233,7 @@ _HISTORY_PATH = _Path("./data_processed/qa_history.jsonl")
 
 
 def _persist(item: Dict[str, Any]) -> None:
+    """Append a single Q&A history item to qa_history.jsonl; silently ignores write errors."""
     try:
         _HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
         with _HISTORY_PATH.open("a", encoding="utf-8") as f:
@@ -264,7 +267,7 @@ def load_history() -> int:
 
 
 def record_recommendation(item: Dict[str, Any]) -> None:
-    """Add a new question/answer to history. Persists to disk."""
+    """Add a new question/answer item to the in-memory cache and persist it to disk."""
     if "ts" not in item:
         item["ts"] = datetime.utcnow().isoformat() + "Z"
     _RECOMMENDATION_CACHE.insert(0, item)
@@ -273,6 +276,7 @@ def record_recommendation(item: Dict[str, Any]) -> None:
 
 
 def recent_recommendations(tenant_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """Return the most recent recommendation history items visible to the given tenant."""
     out = [r for r in _RECOMMENDATION_CACHE
            if r.get("tenant_id", "default") == tenant_id or tenant_id == "default"]
     return out[:limit]
@@ -311,7 +315,7 @@ def question_history(tenant_id: str, *, limit: int = 20,
 
 
 def history_stats(tenant_id: str) -> Dict[str, Any]:
-    """Aggregate stats for the FAQ panel header."""
+    """Return aggregate Q&A history stats (total questions, unique operators) for the FAQ panel."""
     total = sum(1 for r in _RECOMMENDATION_CACHE
                 if r.get("tenant_id", "default") == tenant_id or tenant_id == "default")
     operators = set()

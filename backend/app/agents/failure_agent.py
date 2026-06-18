@@ -19,9 +19,17 @@ from app.agents.base_agent import BaseAgent
 
 
 class FailureAgent(BaseAgent):
+    """Deterministically identifies probable root causes from retrieved incidents and stability metrics."""
+
     name = "failure_analysis_agent"
 
     def _run(self, env: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+        """Apply rule-based heuristics to derive a ranked list of root cause candidates.
+
+        Checks voltage deviation, frequency drift, transformer overload concentration,
+        outage clustering, and smart-meter anomaly patterns. Appends a generic fallback
+        entry when no specific rule matches.
+        """
         chunks: List[Dict] = env.get("retrieved", [])
         stab = env.get("stability_analysis", {}) or {}
 

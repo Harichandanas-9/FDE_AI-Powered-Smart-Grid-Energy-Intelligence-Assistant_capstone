@@ -1,3 +1,8 @@
+/**
+ * Generic async-data hook used across all pages.
+ * Calls `fetcher` on mount and whenever `deps` change; optionally polls on an interval.
+ * Returns { data, error, loading, reload } so callers can react to each state.
+ */
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -14,6 +19,7 @@ export function useApi(fetcher, deps = [], { pollMs } = {}) {
     setLoading(true)
     try {
       const r = await fetcher()
+      /* Guard against state updates after the component has unmounted. */
       if (live.current) { setData(r); setError(null) }
     } catch (e) {
       if (live.current) setError(e?.friendly || e?.message || 'Request failed')

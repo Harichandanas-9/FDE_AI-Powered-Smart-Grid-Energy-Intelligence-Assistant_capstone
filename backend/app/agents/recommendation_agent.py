@@ -23,6 +23,7 @@ from app.rag.llm import TemplateProvider
 
 
 def _to_chunks(chunk_dicts: List[Dict]) -> List[RetrievedChunk]:
+    """Convert raw envelope chunk dicts back into typed RetrievedChunk objects."""
     return [
         RetrievedChunk(
             id=c["id"], text=c["text"], metadata=c.get("metadata", {}),
@@ -35,13 +36,22 @@ def _to_chunks(chunk_dicts: List[Dict]) -> List[RetrievedChunk]:
 
 
 class RecommendationAgent(BaseAgent):
+    """Generates the final natural-language answer, recommendations, reasoning, and confidence score."""
+
     name = "recommendation_agent"
 
     def __init__(self, settings, llm_provider):
+        """Accept a pre-constructed LLM provider so the orchestrator controls the LLM lifecycle."""
         super().__init__(settings)
         self.llm = llm_provider
 
     def _run(self, env: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+        """Call the LLM with an enriched query context and write results back to the envelope.
+
+        Injects the structured stability analysis and root causes as JSON into the prompt so
+        the LLM grounds its prose in deterministic upstream findings. Falls back to
+        TemplateProvider if the primary LLM raises an exception.
+        """
         query = env.get("masked_query") or env.get("query", "")
         chunks_dicts = env.get("retrieved", [])
         chunks = _to_chunks(chunks_dicts)

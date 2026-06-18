@@ -1,3 +1,7 @@
+/**
+ * IncidentTimeline page — stacked area chart of incidents over time grouped by severity.
+ * Operators can toggle between 'day' and 'hour' time bucket granularity.
+ */
 import { useState } from 'react'
 import GlassCard from '../components/cards/GlassCard.jsx'
 import LoadingDots from '../components/cards/LoadingDots.jsx'

@@ -1,3 +1,9 @@
+/**
+ * Dashboard — the home page providing a high-level overview of the smart grid.
+ * Shows KPI metrics, a health gauge, region bars, incident timeline/heatmap,
+ * predictive risk summary, and recent operator recommendations.
+ * Auto-refreshes every 60 s and shows an ETL status banner at the top.
+ */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -16,6 +22,7 @@ import {
   GridScore, Heatmap, Timeline, RecentRecs, RunIngest, RunEmbed, EtlLastRun, Predict,
 } from '../services/api.js'
 
+/** Returns a human-readable relative timestamp string (e.g. "3 min ago") from an ISO string. */
 function fmtAgo(iso) {
   if (!iso) return ''
   const dt = new Date(iso)
@@ -26,6 +33,7 @@ function fmtAgo(iso) {
   return dt.toLocaleString()
 }
 
+/** Formats an ISO timestamp as a locale-friendly date-time string for the ETL status banner. */
 function fmtTime(iso) {
   if (!iso) return ''
   const dt = new Date(iso)
@@ -75,6 +83,7 @@ export default function Dashboard() {
     return () => clearInterval(id)
   }, [])
 
+  /** Runs a full ETL ingest + embed cycle and then reloads all widget data. */
   const refreshData = async () => {
     setBusy(true)
     try {

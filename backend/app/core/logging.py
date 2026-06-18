@@ -50,4 +50,5 @@ def configure_logging(level: str = "INFO") -> None:
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
+    """Return a named logger, defaulting to the top-level ``smartgrid`` logger."""
     return logging.getLogger(name or "smartgrid")

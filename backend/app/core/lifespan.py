@@ -117,6 +117,17 @@ def _auto_ingest_if_empty() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """FastAPI lifespan handler: runs startup tasks before ``yield`` and teardown after.
+
+    Startup sequence (intentionally minimal and Windows-safe):
+      1. Optionally enable LangSmith tracing via environment variables.
+      2. Detect which LLM API keys are present and record component statuses.
+      3. Auto-ingest datasets if no processed chunks exist yet (demo readiness).
+      4. Load the BM25 index from cache or rebuild it from ``chunks.jsonl``.
+      5. Restore QA history and ETL run history from JSONL files.
+
+    ChromaDB is deliberately NOT touched here — see the module docstring.
+    """
     import os
     settings = get_settings()
 

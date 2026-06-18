@@ -1,3 +1,8 @@
+/**
+ * Telemetry page — displays real-time or polled voltage, frequency, demand, and stability
+ * in two side-by-side line charts. Operators toggle between polling (5 s REST) and live
+ * WebSocket mode; WebSocket mode appends frames as they arrive.
+ */
 import { useState } from 'react'
 import { Pause, Play, Radio, Wifi, WifiOff } from 'lucide-react'
 import GlassCard from '../components/cards/GlassCard.jsx'
@@ -22,7 +27,9 @@ export default function Telemetry() {
     query: { mode: 'auto', rate: 2.0 },
   })
 
+  /* In live mode WebSocket messages are the samples; in poll mode use the REST response. */
   const samples = mode === 'live' ? ws.messages : (poll.data?.samples || [])
+  /* Only show the full-page loader on the very first poll fetch, not on subsequent refreshes. */
   const loading = mode === 'poll' && poll.loading && !samples.length
 
   return (

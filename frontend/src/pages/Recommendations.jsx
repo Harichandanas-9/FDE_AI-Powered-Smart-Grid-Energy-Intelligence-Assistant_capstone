@@ -1,3 +1,7 @@
+/**
+ * Recommendations page — displays a paginated grid of the last 20 /analyze responses
+ * cached by the backend, showing the query, AI answer, and prioritised action items.
+ */
 import { motion } from 'framer-motion'
 import { Lightbulb, MessageSquare } from 'lucide-react'
 import GlassCard from '../components/cards/GlassCard.jsx'

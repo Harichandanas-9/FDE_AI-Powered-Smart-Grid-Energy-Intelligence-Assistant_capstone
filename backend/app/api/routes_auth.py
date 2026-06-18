@@ -26,6 +26,10 @@ async def login(
     form: OAuth2PasswordRequestForm = Depends(),
     settings: Settings = Depends(get_settings),
 ) -> LoginResponse:
+    """Authenticate a demo user via form-encoded credentials and return a signed JWT.
+
+    Raises HTTP 401 if the username/password pair is not recognised.
+    """
     user = authenticate_user(form.username, form.password, settings=settings)
     if not user:
         raise HTTPException(
@@ -48,4 +52,5 @@ async def login(
     summary="Introspect the current principal (helpful for the UI)",
 )
 async def me(principal: dict = Depends(get_current_principal)) -> MeResponse:
+    """Return the decoded claims of the current JWT (username, tenant_id, role)."""
     return MeResponse(**principal)

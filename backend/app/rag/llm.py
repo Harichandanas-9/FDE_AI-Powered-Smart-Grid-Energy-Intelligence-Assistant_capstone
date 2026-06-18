@@ -54,6 +54,7 @@ class TemplateProvider:
     name = "template"
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
+        """Build a structured JSON answer from retrieved chunks without calling an LLM."""
         if not chunks:
             return {
                 "answer": (
@@ -173,9 +174,12 @@ class TemplateProvider:
 
 # ---------------------------------------------------------------------------
 class OpenAIProvider:
+    """LLM provider backed by OpenAI Chat Completions via langchain-openai."""
+
     name = "openai"
 
     def __init__(self, settings: Settings):
+        """Instantiate the ChatOpenAI client using credentials from settings."""
         from langchain_openai import ChatOpenAI
         self.llm = ChatOpenAI(
             model=settings.llm_model,
@@ -185,6 +189,7 @@ class OpenAIProvider:
         )
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
+        """Send the query + retrieved chunks to OpenAI and return the parsed JSON response."""
         from langchain_core.messages import HumanMessage, SystemMessage
         msgs = [
             SystemMessage(content=SYSTEM_PROMPT),
@@ -195,9 +200,12 @@ class OpenAIProvider:
 
 
 class AnthropicProvider:
+    """LLM provider backed by Anthropic Messages API via langchain-anthropic."""
+
     name = "anthropic"
 
     def __init__(self, settings: Settings):
+        """Instantiate the ChatAnthropic client using credentials from settings."""
         from langchain_anthropic import ChatAnthropic
         self.llm = ChatAnthropic(
             model=settings.llm_model,
@@ -207,6 +215,7 @@ class AnthropicProvider:
         )
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
+        """Send the query + retrieved chunks to Anthropic and return the parsed JSON response."""
         from langchain_core.messages import HumanMessage, SystemMessage
         msgs = [
             SystemMessage(content=SYSTEM_PROMPT),
@@ -224,6 +233,7 @@ class GroqProvider:
     URL = "https://api.groq.com/openai/v1/chat/completions"
 
     def __init__(self, settings: Settings):
+        """Read Groq API key and model name from settings."""
         # .strip() handles GROQ_API_KEY= gsk_... (leading space in .env)
         self.api_key = getattr(settings, "groq_api_key", "").strip()
         self.model   = (getattr(settings, "groq_model_large", "") or
@@ -231,6 +241,7 @@ class GroqProvider:
                         settings.llm_model or "llama-3.3-70b-versatile")
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
+        """Send a chat completion request to Groq's OpenAI-compatible API and parse the JSON."""
         import httpx
         # NOTE: no response_format=json_object — not all Groq models support it
         payload = {
@@ -255,10 +266,12 @@ class GeminiProvider:
     name = "gemini"
 
     def __init__(self, settings: Settings):
+        """Read Gemini API key and model name from settings."""
         self.api_key = settings.gemini_api_key
         self.model = settings.gemini_model
 
     def generate(self, query: str, chunks: List[RetrievedChunk]) -> Dict[str, Any]:
+        """Send the prompt to Gemini's generateContent endpoint and parse the JSON response."""
         import httpx
         url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
                f"{self.model}:generateContent?key={self.api_key}")
@@ -285,6 +298,7 @@ def get_provider(settings: Optional[Settings] = None):
     # standard fallback chain Groq -> Gemini -> OpenAI -> Anthropic -> template.
     # A provider is only attempted if its API key is present.
     def _build(name):
+        # Instantiate the named provider only when its API key is present
         if name == "groq" and settings.groq_api_key:
             return GroqProvider(settings)
         if name == "gemini" and settings.gemini_api_key:

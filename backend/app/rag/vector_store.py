@@ -27,6 +27,11 @@ _LOCK = Lock()
 
 
 def _import_chroma():
+    """Import chromadb and optionally ChromaDB's Settings class.
+
+    Raises RuntimeError with a clear install message if chromadb is missing.
+    ChromaSettings is returned as None when unavailable (newer Chroma versions removed it).
+    """
     try:
         import chromadb
         try:
@@ -174,6 +179,7 @@ def query_collection(
 
 
 def count(collection) -> int:
+    """Return the number of documents in the collection, or 0 on any error."""
     try:
         return collection.count()
     except Exception:

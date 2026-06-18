@@ -1,3 +1,8 @@
+/**
+ * SmartMeter page — household consumption anomaly detection dashboard.
+ * Shows KPI tiles, anomaly detection thresholds, severity pie, demand/voltage trend,
+ * and an expandable incident inspector sorted worst-first.
+ */
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Gauge, AlertCircle, Activity, Zap, ChevronDown, Filter } from 'lucide-react'
@@ -16,6 +21,11 @@ const ANOMALY_THRESHOLDS = {
   stability_low: -0.2,  // below this = unstable window
 }
 
+/**
+ * AnomalyBadge — displays a HIGH/LOW/OK pill for a single telemetry metric.
+ * Compares `value` against optional `low` and `high` thresholds and picks the
+ * appropriate severity colour.
+ */
 function AnomalyBadge({ value, low, high, unit }) {
   if (value == null) return null
   const v = parseFloat(value)

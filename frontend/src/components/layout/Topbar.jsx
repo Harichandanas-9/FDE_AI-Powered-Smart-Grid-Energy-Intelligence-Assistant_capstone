@@ -1,8 +1,13 @@
+/**
+ * Topbar — top navigation bar showing the app title, a live backend health pill,
+ * an operator name input (persisted to localStorage), and a health refresh button.
+ */
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { User, RefreshCw, Activity } from 'lucide-react'
 import { Health } from '../../services/api.js'
 
+/** Fetches /health on mount and whenever the user clicks Refresh. */
 export default function Topbar() {
   const [operator, setOperator] = useState(localStorage.getItem('operator_name') || '')
   const [health, setHealth]     = useState({ status: 'ok' })  // optimistic default
@@ -15,6 +20,7 @@ export default function Topbar() {
   }
   useEffect(() => { refresh() }, [])
 
+  /** Persists the operator name both in React state and localStorage so requests include it. */
   const updateOperator = (v) => {
     setOperator(v)
     localStorage.setItem('operator_name', v)

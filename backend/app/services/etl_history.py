@@ -101,6 +101,7 @@ def last_run(tenant_id: str = "default") -> Optional[Dict[str, Any]]:
 
 
 def stats(tenant_id: str = "default") -> Dict[str, Any]:
+    """Return aggregate ETL statistics: total runs, total chunks written, files processed, and last run."""
     runs = recent(tenant_id=tenant_id, limit=_CACHE_LIMIT)
     return {
         "total_runs":       len(runs),

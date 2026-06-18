@@ -1,3 +1,7 @@
+/**
+ * SeverityPie — donut chart that visualises incident counts split by severity level.
+ * Expects a `counts` object like { low: N, medium: N, high: N, critical: N }.
+ */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = {
@@ -8,6 +12,7 @@ const COLORS = {
   unknown:  '#7F8AA3',
 }
 
+/** Filters out zero-count entries so they don't appear as empty slices. */
 export default function SeverityPie({ counts = {}, title }) {
   const data = Object.entries(counts)
     .filter(([, v]) => v > 0)

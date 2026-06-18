@@ -43,6 +43,7 @@ ERROR = {"error", "not_installed"}
 
 
 def _classify(value: str) -> str:
+    """Map a component status string to one of 'healthy', 'warn', or 'error'."""
     if isinstance(value, str) and value.startswith("ok"):  # e.g. "ok (5 loaded)"
         return "healthy"
     if value in HEALTHY:
@@ -54,6 +55,7 @@ def _classify(value: str) -> str:
 
 @router.get("/health", summary="Liveness + component status")
 async def health(request: Request) -> Dict:
+    """Return liveness status and per-component health, aggregated to 'ok', 'warn', or 'degraded'."""
     components: Dict[str, str] = getattr(request.app.state, "components", {})
     has_error = any(_classify(v) == "error" for v in components.values())
     has_warn  = any(_classify(v) == "warn"  for v in components.values())
@@ -67,6 +69,7 @@ async def health(request: Request) -> Dict:
 
 @router.get("/", summary="Root banner")
 async def root() -> Dict:
+    """Return a brief service banner with links to docs and the health endpoint."""
     return {
         "service": "Smart Grid AI Assistant",
         "version": __version__,

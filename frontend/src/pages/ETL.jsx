@@ -1,3 +1,8 @@
+/**
+ * ETL page — manages CSV datasets on the backend and drives the Extract-Transform-Load pipeline.
+ * Operators can upload new CSVs, run ETL on existing files, track per-file processing status,
+ * and delete datasets. Last-run metadata is persisted to sessionStorage across navigations.
+ */
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -10,6 +15,7 @@ import {
   ListDatasets, UploadDataset, DeleteDataset, ProcessDataset, ClearEtlCache,
 } from '../services/api.js'
 
+/** Converts a byte count to a human-readable string (B / KB / MB). */
 function fmtSize(b) {
   if (!b) return '0 B'
   if (b < 1024) return b + ' B'
@@ -17,6 +23,7 @@ function fmtSize(b) {
   return (b / 1024 / 1024).toFixed(1) + ' MB'
 }
 
+/** Converts an elapsed millisecond count to a compact relative string (e.g. "4m ago"). */
 function fmtAgo(ms) {
   const s = Math.floor(ms / 1000)
   if (s < 60)   return s + 's ago'
@@ -24,7 +31,7 @@ function fmtAgo(ms) {
   return Math.floor(s / 3600) + 'h ago'
 }
 
-// Status badge component
+/** Renders a coloured pill (Processing / Completed / Failed) for a file's ETL status. */
 function StatusBadge({ status, error }) {
   if (status === 'processing') return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
@@ -86,6 +93,7 @@ export default function ETL() {
     } catch {}
   }, [])
 
+  /** Updates a file's status in state and mirrors it to sessionStorage so it survives tab switches. */
   const updateFileStatus = (fname, status, error) => {
     setFileStatus((prev) => {
       const next = { ...prev, [fname]: { status, error } }

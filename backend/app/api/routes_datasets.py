@@ -83,6 +83,7 @@ def _data_dir() -> Path:
 async def list_datasets(
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """List all CSV and TXT files in the datasets directory with size and source-key metadata."""
     d = _data_dir()
     items: List[Dict[str, Any]] = []
     for child in sorted(d.iterdir()):
@@ -113,6 +114,10 @@ async def upload(
     file: UploadFile = File(...),
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Accept a multipart CSV upload and stream it to the datasets directory.
+
+    Enforces a 200 MB cap and rejects non-CSV files with HTTP 400/413.
+    """
     if not file.filename:
         raise HTTPException(400, "no filename")
     if not file.filename.lower().endswith(".csv"):
@@ -143,6 +148,7 @@ async def delete_dataset(
     filename: str,
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Delete a specific CSV file from the datasets directory. Returns HTTP 404 if the file is absent."""
     target = _data_dir() / filename
     if not target.exists() or not target.is_file():
         raise HTTPException(404, f"{filename} not found")
@@ -180,6 +186,10 @@ async def process_dataset(
 
 
 async def _process_dataset_inner(filename, request, principal, log, _json, _tb):
+    """Execute the five-step ETL pipeline (ingest, read JSONL, rebuild BM25, ChromaDB upsert, history) for one dataset file.
+
+    Returns a structured dict describing success or the failing step — never raises.
+    """
 
     def _fail(step: str, exc: Exception) -> Dict[str, Any]:
         """Return a 200 response describing the failure (never a 500).

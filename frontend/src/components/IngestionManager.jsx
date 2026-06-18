@@ -1,9 +1,15 @@
+/**
+ * IngestionManager — two-panel widget for triggering dataset ingestion and managing
+ * the ChromaDB vector index. Handles dataset selection, ingest/re-ingest actions,
+ * index reset, and retrieval validation with live status notifications.
+ */
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Database, RefreshCw, CheckCircle2, Trash2 } from 'lucide-react'
 import GlassCard from './cards/GlassCard.jsx'
 import { ListDatasets, ProcessDataset, ResetIndex, ValidateRetrieval } from '../services/api.js'
 
+/** @param {Function} onIngested - called after a successful ingest so the parent can refresh. */
 export default function IngestionManager({ onIngested }) {
   const [datasets,  setDS]    = useState([])
   const [sel,       setSel]   = useState('smart_grid_stability_augmented.csv')
@@ -12,6 +18,7 @@ export default function IngestionManager({ onIngested }) {
   const [validation,setVal]   = useState(null)
   const [vectorsIdx,setVec]   = useState(null)
 
+  /** Shows a dismissible banner; auto-dismisses after `ms` ms (pass 0 to keep persistent). */
   const note = (text, kind = 'ok', ms = 6000) => {
     setNotif({ text, kind })
     if (ms) setTimeout(() => setNotif(null), ms)

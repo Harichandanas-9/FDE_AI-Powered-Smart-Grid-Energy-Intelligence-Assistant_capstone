@@ -1,3 +1,7 @@
+/**
+ * Settings page — lets operators set their display name and optional JWT token
+ * (both persisted to localStorage) and shows the live backend health/component status.
+ */
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Trash2 } from 'lucide-react'
@@ -17,11 +21,13 @@ export default function Settings() {
     Me().then(setMe).catch(() => {})
   }, [])
 
+  /** Persists operator name and JWT to localStorage, then re-fetches /auth/me to validate the token. */
   const save = () => {
     localStorage.setItem('operator_name', op)
     localStorage.setItem('jwt_token', token)
     Me().then(setMe).catch(() => setMe(null))
   }
+  /** Removes the stored JWT token and clears the current identity display. */
   const clearToken = () => { localStorage.removeItem('jwt_token'); setToken(''); setMe(null) }
 
   return (

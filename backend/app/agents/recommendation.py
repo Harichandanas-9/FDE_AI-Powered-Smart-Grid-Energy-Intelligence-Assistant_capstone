@@ -18,6 +18,12 @@ _SYNTH_SYSTEM = (
 
 
 def recommend(state: dict) -> dict:
+    """LangGraph node: generate time-bracketed mitigation recommendations via the LLM.
+
+    Assembles context from upstream agent outputs (retrieval summary, stability analysis,
+    root cause) and asks the LLM for Immediate / Short-term / Long-term actions.
+    Falls back to a static message if the LLM call fails.
+    """
     query         = state.get("query", "")
     severity      = state.get("severity", "LOW")
     agent_outputs = state.get("agent_outputs", {})
@@ -58,6 +64,12 @@ def recommend(state: dict) -> dict:
 
 
 def synthesize_final(state: dict) -> dict:
+    """LangGraph node: merge all prior agent outputs into a single coherent markdown response.
+
+    Concatenates available sections (incidents, stability, root cause, recommendations) and
+    asks the LLM to produce a unified operator-facing answer. Falls back to the raw
+    concatenation when the LLM is unavailable.
+    """
     query         = state.get("query", "")
     agent_outputs = state.get("agent_outputs", {})
 
@@ -75,7 +87,7 @@ def synthesize_final(state: dict) -> dict:
         return {"final_answer": "Unable to generate analysis. Please check that data has been ingested."}
 
     context = truncate_context("\n\n".join(parts))
-    final   = "\n\n".join(parts)  # fallback
+    final   = "\n\n".join(parts)  # used as-is if the LLM call below fails
     try:
         from langchain_core.messages import HumanMessage, SystemMessage
         from app.core.llm_router import TaskType, router as llm_router

@@ -1,3 +1,8 @@
+/**
+ * FailureAnalysis page — lets operators filter incidents by severity/region,
+ * view a severity distribution pie, inspect matched incident records, and study
+ * the Pearson correlation matrix between key telemetry metrics.
+ */
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ChevronDown } from 'lucide-react'
@@ -8,6 +13,11 @@ import { SearchIncidents, Heatmap, AnomalyCorrelations } from '../services/api.j
 
 const SEVERITIES = ['', 'low', 'medium', 'high', 'critical']
 
+/**
+ * Maps a Pearson r value to an RGBA colour string.
+ * Positive correlations use mint-green; negative correlations use orange.
+ * The alpha is the absolute value so stronger correlations appear more vivid.
+ */
 function corrColor(v) {
   if (v == null) return 'rgba(240,240,240,0.6)'
   const a = Math.abs(v).toFixed(2)
@@ -16,6 +26,10 @@ function corrColor(v) {
     : ('rgba(255,122,69,' + a + ')')
 }
 
+/**
+ * CorrelationMatrix — renders a colour-coded Pearson r table for anomaly metrics.
+ * Shows a skeleton while loading and falls back gracefully to an empty-state message.
+ */
 function CorrelationMatrix({ data }) {
   if (!data) return (
     <div className="space-y-2">
@@ -105,6 +119,7 @@ export default function FailureAnalysis() {
     [severity, region],
   )
 
+  /* Sum each severity column across all regions to get total counts for the pie chart. */
   const sevCounts = useMemo(() => {
     if (!heat.data) return {}
     const out = {}

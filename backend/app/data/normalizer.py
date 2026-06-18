@@ -53,6 +53,10 @@ def _stable_region(seed: str) -> str:
 
 
 def _classify_transformer(stability: float) -> str:
+    """Map a raw stability value to a transformer status label.
+
+    Negative stab = stable; small positive = warning; larger positive = overload_risk.
+    """
     if stability < 0:
         return "stable"
     if stability < 0.03:

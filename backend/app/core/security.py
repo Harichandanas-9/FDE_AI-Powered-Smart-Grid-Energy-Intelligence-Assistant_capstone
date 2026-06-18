@@ -67,4 +67,9 @@ def get_current_principal(
 def get_current_tenant_id(
     principal: dict = Depends(get_current_principal),
 ) -> str:
+    """Extract only the ``tenant_id`` string from the resolved principal.
+
+    Convenience dependency for routes that only need tenant isolation without
+    the full principal dict.
+    """
     return principal["tenant_id"]

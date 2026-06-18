@@ -26,6 +26,7 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 
 def _try_import():
+    """Lazily import ReportLab components, raising RuntimeError with a helpful message if the package is absent."""
     try:
         from reportlab.lib import colors
         from reportlab.lib.pagesizes import LETTER
@@ -42,6 +43,10 @@ def _try_import():
 
 @router.post("/pdf", summary="Export an /analyze response as PDF")
 async def export_pdf(payload: Dict[str, Any] = Body(...)):
+    """Render an /analyze response payload as a multi-section PDF and stream it as a file download.
+
+    Sections include the query, AI answer, root causes, recommendations, retrieved evidence, and agent trace.
+    """
     (colors, LETTER, getSampleStyleSheet, ParagraphStyle, inch,
      SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle) = _try_import()
 

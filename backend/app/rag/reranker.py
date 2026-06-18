@@ -49,12 +49,14 @@ _CE_LOCK = Lock()
 # ---------------------------------------------------------------------------
 
 def _load_cross_encoder(model_name: str):
+    """Instantiate a CrossEncoder model on CPU."""
     from sentence_transformers import CrossEncoder  # noqa: PLC0415
     logger.info("loading_cross_encoder", extra={"model": model_name})
     return CrossEncoder(model_name, device="cpu")
 
 
 def _get_cross_encoder(model_name: str):
+    """Return the singleton CrossEncoder, loading it on first call (thread-safe)."""
     global _CE_MODEL
     if _CE_MODEL is not None:
         return _CE_MODEL
@@ -70,6 +72,7 @@ def _cross_encoder_rerank(
     model_name: str,
     top_k: Optional[int],
 ) -> List[RetrievedChunk]:
+    """Score (query, chunk) pairs with a CrossEncoder and return sorted top-k results."""
     model = _get_cross_encoder(model_name)
     pairs = [(query, c.text) for c in chunks]
     scores = model.predict(pairs)

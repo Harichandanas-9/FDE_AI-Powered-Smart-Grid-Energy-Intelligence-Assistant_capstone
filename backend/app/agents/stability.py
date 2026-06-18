@@ -14,6 +14,12 @@ _SYSTEM = (
 
 
 def analyze_stability(state: dict) -> dict:
+    """LangGraph node: compute stable/unstable counts and ask the LLM to narrate stability risks.
+
+    Builds a concise stats summary first (used as the fallback if the LLM is unavailable),
+    then sends up to six retrieved incident texts alongside the stats to the LLM for
+    deeper analysis. Emits a stability_analysis event on the event bus when complete.
+    """
     query = state.get("query", "")
     docs  = state.get("retrieved_docs", [])
 
@@ -24,7 +30,7 @@ def analyze_stability(state: dict) -> dict:
                     f"Instability rate: {unstable / max(len(docs), 1) * 100:.1f}%")
         ctx = truncate_context("\n".join(d["text"] for d in docs[:6]), max_chars=8000)
 
-        analysis = stats  # fallback
+        analysis = stats  # used as-is when the LLM call below fails
         try:
             from langchain_core.messages import HumanMessage, SystemMessage
             from app.core.llm_router import TaskType, router as llm_router

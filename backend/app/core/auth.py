@@ -37,6 +37,11 @@ def create_access_token(
     *, username: str, tenant_id: str, role: str = "engineer",
     settings: Optional[Settings] = None,
 ) -> Dict[str, object]:
+    """Create and sign a JWT for the given user, returning a token response dict.
+
+    The returned dict includes ``access_token``, ``token_type``, ``expires_at``,
+    ``tenant_id``, ``username``, and ``role`` for immediate use by the client.
+    """
     s = settings or get_settings()
     now = datetime.now(timezone.utc)
     exp = now + timedelta(minutes=s.jwt_expiry_minutes)
@@ -59,6 +64,11 @@ def create_access_token(
 
 
 def decode_token(token: str, settings: Optional[Settings] = None) -> Dict[str, object]:
+    """Verify and decode a JWT, returning its payload as a dict.
+
+    Raises ``ValueError`` with a descriptive message for expired or otherwise
+    invalid tokens so callers can map the error to an appropriate HTTP response.
+    """
     s = settings or get_settings()
     try:
         return pyjwt.decode(token, s.jwt_secret, algorithms=[s.jwt_algorithm])

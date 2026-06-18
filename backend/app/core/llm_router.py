@@ -19,6 +19,12 @@ LLM_MAX_RETRIES = 0   # langchain retries per provider (0 = no retry, 1 = one re
 
 
 class TaskType(str, Enum):
+    """Semantic label for the kind of work being sent to the LLM.
+
+    Used for logging and can guide future routing logic (e.g., sending
+    lightweight tasks to a smaller model).
+    """
+
     ROUTING       = "routing"
     ANALYSIS      = "analysis"
     GENERATION    = "generation"
@@ -26,6 +32,10 @@ class TaskType(str, Enum):
 
 
 def _build_groq(settings, size: str = "large"):
+    """Instantiate a Groq ChatGroq client for the given model size.
+
+    Returns ``None`` if the API key is missing or the package is unavailable.
+    """
     api_key = getattr(settings, "groq_api_key", "").strip()
     if not api_key:
         return None
@@ -47,6 +57,10 @@ def _build_groq(settings, size: str = "large"):
 
 
 def _build_openai(settings):
+    """Instantiate a ChatOpenAI client, optionally using a custom base URL.
+
+    Returns ``None`` if the API key is missing or the package is unavailable.
+    """
     if not getattr(settings, "openai_api_key", "").strip():
         return None
     try:
@@ -67,6 +81,10 @@ def _build_openai(settings):
 
 
 def _build_anthropic(settings):
+    """Instantiate a ChatAnthropic client.
+
+    Returns ``None`` if the API key is missing or the package is unavailable.
+    """
     if not getattr(settings, "anthropic_api_key", "").strip():
         return None
     try:
@@ -84,6 +102,10 @@ def _build_anthropic(settings):
 
 
 def _build_gemini(settings):
+    """Instantiate a ChatGoogleGenerativeAI client for the configured Gemini model.
+
+    Returns ``None`` if the API key is missing or the package is unavailable.
+    """
     api_key = getattr(settings, "gemini_api_key", "").strip()
     if not api_key:
         return None
@@ -100,10 +122,22 @@ def _build_gemini(settings):
 
 
 class _LLMRouter:
+    """Singleton LLM router that walks a configurable provider fallback chain.
+
+    Providers are instantiated lazily on first use and cached per-instance.
+    Both synchronous (``invoke``) and asynchronous (``ainvoke``) entry points
+    try each provider in order and raise ``RuntimeError`` only when all fail.
+    """
+
     def __init__(self) -> None:
         self._llms: dict = {}
 
     def _providers(self):
+        """Build and return the ordered list of (name, llm) pairs from the fallback chain.
+
+        Providers whose API keys are absent are skipped; already-built clients
+        are reused from the instance cache.
+        """
         try:
             from app.core.config import get_settings
             s = get_settings()
@@ -134,6 +168,10 @@ class _LLMRouter:
         return providers
 
     def invoke(self, task: TaskType, messages: List[BaseMessage], **kw) -> Any:
+        """Invoke the LLM synchronously, trying each provider in fallback order.
+
+        Raises ``RuntimeError`` if every provider in the chain fails.
+        """
         last_err = None
         for name, llm in self._providers():
             try:
@@ -148,6 +186,10 @@ class _LLMRouter:
         )
 
     async def ainvoke(self, task: TaskType, messages: List[BaseMessage], **kw) -> Any:
+        """Invoke the LLM asynchronously, trying each provider in fallback order.
+
+        Raises ``RuntimeError`` if every provider in the chain fails.
+        """
         last_err = None
         for name, llm in self._providers():
             try:

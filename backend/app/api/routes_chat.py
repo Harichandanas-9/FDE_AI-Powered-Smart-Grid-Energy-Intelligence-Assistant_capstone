@@ -24,6 +24,10 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 def _run_graph(query: str, session_id: str) -> Dict[str, Any]:
+    """Build the LangGraph agent graph, invoke it synchronously, and return the final state dict.
+
+    Intended to run inside a thread executor to avoid blocking the async event loop.
+    """
     from langchain_core.messages import HumanMessage
     from app.agents.graph import get_graph
     from app.services.event_bus import set_session_id
@@ -41,6 +45,7 @@ def _run_graph(query: str, session_id: str) -> Dict[str, Any]:
 
 
 def _docs_out(docs, limit: int = 5):
+    """Deduplicate and convert raw retrieved-doc dicts to RetrievedChunkOut models, up to `limit` items."""
     seen, out = set(), []
     for d in docs:
         did = d.get("id", "")
@@ -61,6 +66,11 @@ def _docs_out(docs, limit: int = 5):
 
 @router.post("/query", response_model=ChatResponse, summary="LangGraph chat query")
 async def chat_query(req: ChatRequest) -> ChatResponse:
+    """Process a chat query through guardrails, a semantic cache lookup, then the LangGraph pipeline.
+
+    Returns a cached response immediately if the query embedding is close enough to a prior query;
+    otherwise runs the full multi-agent graph and caches the result.
+    """
     try:
         from app.utils.guardrails import validate_query
         verdict = validate_query(req.query)
@@ -113,17 +123,24 @@ async def chat_query(req: ChatRequest) -> ChatResponse:
 
 @router.post("/feedback", summary="Store thumbs-up/down")
 async def post_feedback(req: FeedbackRequest) -> dict:
+    """Persist a thumbs-up or thumbs-down rating for a specific message."""
     feedback_store.save(req.session_id, req.message_id, req.rating, req.comment or "")
     return {"status": "ok"}
 
 
 @router.get("/feedback/recent", summary="Recent feedback")
 async def get_recent_feedback() -> dict:
+    """Return the 50 most recent feedback entries along with aggregate stats."""
     return {"feedback": feedback_store.recent(), **feedback_store.stats()}
 
 
 @router.websocket("/ws/{session_id}")
 async def websocket_chat(ws: WebSocket, session_id: str):
+    """Stream chat responses over a WebSocket connection.
+
+    Each received JSON message must contain a `query` key. After the graph
+    completes, any buffered event-bus events for the session are also pushed.
+    """
     await ws.accept()
     try:
         while True:

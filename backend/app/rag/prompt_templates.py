@@ -62,6 +62,7 @@ def build_context_block(chunks: List[RetrievedChunk], char_cap: int = 350) -> st
 
 
 def build_user_prompt(query: str, chunks: List[RetrievedChunk]) -> str:
+    """Assemble the full user message from the query and retrieved context chunks."""
     return USER_PROMPT_TEMPLATE.format(
         context_block=build_context_block(chunks),
         query=query,

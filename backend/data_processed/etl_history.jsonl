@@ -32,3 +32,4 @@
 {"filename": "sample.csv", "source_key": "stability", "tenant_id": "default", "operator": "anonymous", "chunks_written": 300, "vectors_total": 0, "duration_seconds": 0.21, "errors": [], "ts": "2026-06-08T06:01:56.995996Z"}
 {"filename": "sample.csv", "source_key": "stability", "tenant_id": "default", "operator": "anonymous", "chunks_written": 300, "vectors_total": 0, "duration_seconds": 0.23, "errors": [], "ts": "2026-06-08T06:02:11.212102Z"}
 {"filename": "sample.csv", "source_key": "stability", "tenant_id": "default", "operator": "anonymous", "chunks_written": 300, "vectors_total": 0, "duration_seconds": 0.3, "errors": [], "ts": "2026-06-08T06:02:34.833062Z"}
+{"filename": "smart_grid_stability_augmented.csv", "source_key": "stability", "tenant_id": "default", "operator": "anonymous", "chunks_written": 300, "vectors_total": 0, "duration_seconds": 0.6, "errors": [], "ts": "2026-06-11T16:12:05.874629Z"}

@@ -1,3 +1,7 @@
+/**
+ * HeatmapAnalytics page — renders the region × severity incident heatmap and shows
+ * a drill-down list of the top 15 matching incidents when a cell is clicked.
+ */
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import GlassCard from '../components/cards/GlassCard.jsx'

@@ -1,3 +1,7 @@
+/**
+ * AgentFlow — visual pipeline card that renders each step of an agent trace as a
+ * labelled card connected by chevrons. Status icons show pass/fail per agent.
+ */
 import { motion } from 'framer-motion'
 import {
   ShieldCheck, Search, Activity, AlertTriangle, Lightbulb, ChevronRight,

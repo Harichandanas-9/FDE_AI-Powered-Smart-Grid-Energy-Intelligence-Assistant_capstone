@@ -13,13 +13,17 @@ from app.rag.hybrid_retriever import HybridRetriever
 
 
 class RetrievalAgent(BaseAgent):
+    """Fetches the most relevant incident chunks from the hybrid (semantic + BM25) index."""
+
     name = "retrieval_agent"
 
     def __init__(self, settings, retriever: HybridRetriever):
+        """Accept an injected HybridRetriever so the index is shared across requests."""
         super().__init__(settings)
         self.retriever = retriever
 
     def _run(self, env: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+        """Query the hybrid retriever and serialise the results into the envelope as plain dicts."""
         query = env.get("masked_query") or env.get("query", "")
         filters = env.get("filters") or None
         tenant_id = env.get("tenant_id") or "default"

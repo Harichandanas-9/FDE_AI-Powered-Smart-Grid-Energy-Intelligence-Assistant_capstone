@@ -1,3 +1,7 @@
+/**
+ * Central API service — configures an axios instance with caching, retry logic,
+ * and auth headers, and exports typed wrappers for every backend endpoint.
+ */
 import axios from 'axios'
 
 const baseURL = import.meta.env.VITE_API_URL || ''
@@ -8,6 +12,7 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+/* Attach operator name and JWT token (when present) to every outgoing request. */
 api.interceptors.request.use((config) => {
   const operator = localStorage.getItem('operator_name') || ''
   if (operator) config.headers['X-Operator-Name'] = operator
@@ -16,10 +21,12 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+/* localStorage cache — GET responses are stored under a key derived from method+URL+params. */
 const CACHE_PREFIX = 'sgapi:'
-const CACHE_TTL_MS = 60 * 60 * 1000
+const CACHE_TTL_MS = 60 * 60 * 1000 // 1-hour TTL
 const MAX_RETRIES  = 3
 
+/** Builds a deterministic localStorage key for a given request config. */
 const _cacheKey = (cfg) =>
   `${CACHE_PREFIX}${(cfg?.method || 'get').toUpperCase()}:${cfg?.url || ''}:${JSON.stringify(cfg?.params || {})}`
 
@@ -29,6 +36,10 @@ function _saveCache(cfg, data) {
   } catch (_) {}
 }
 
+/**
+ * Returns cached data for a request if it exists and is within TTL, otherwise null.
+ * Silently ignores parse errors from corrupted cache entries.
+ */
 function _loadCache(cfg) {
   try {
     const raw = localStorage.getItem(_cacheKey(cfg))
@@ -39,6 +50,7 @@ function _loadCache(cfg) {
   } catch (_) { return null }
 }
 
+/** Removes all cache entries whose key contains the given URL fragment (used after mutations). */
 export function _clearCacheKey(urlFragment) {
   try {
     Object.keys(localStorage).forEach((key) => {
@@ -51,6 +63,10 @@ export function _clearCacheKey(urlFragment) {
 
 const _sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/*
+ * Response interceptor — caches successful GET responses, retries network/5xx errors
+ * up to MAX_RETRIES with exponential backoff, and falls back to stale cache on failure.
+ */
 api.interceptors.response.use(
   (r) => {
     if ((r.config?.method || 'get').toLowerCase() === 'get') _saveCache(r.config, r.data)
@@ -127,6 +143,10 @@ export const ClearEtlCache = () => {
   _clearCacheKey('etl/history')
 }
 
+/**
+ * Uploads a CSV file to the backend with multipart/form-data.
+ * Calls onProgress(pct) as upload progresses so the UI can show a progress bar.
+ */
 export const UploadDataset = (file, onProgress) => {
   const fd = new FormData()
   fd.append('file', file)
@@ -149,6 +169,10 @@ export const AnomalyCorrelations = ()     => api.get('/correlations').then((r) =
 export const Evaluate = (response, query) =>
   api.post('/evaluate', { query: query ?? response?.query, response }).then((r) => r.data)
 
+/**
+ * Triggers a PDF export of an /analyze response by requesting a binary blob
+ * and programmatically clicking a temporary anchor to save it to disk.
+ */
 export const ExportPdf = async (analyzeResponse) => {
   const res  = await api.post('/export/pdf', analyzeResponse, { responseType: 'blob' })
   const blob = new Blob([res.data], { type: 'application/pdf' })

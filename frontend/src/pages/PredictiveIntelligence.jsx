@@ -1,3 +1,8 @@
+/**
+ * PredictiveIntelligence page — shows ML-derived grid failure risk scores at both
+ * global and per-region levels, along with pre-emptive action recommendations.
+ * Falls back to a clear empty state when no telemetry data has been ingested yet.
+ */
 import { motion } from 'framer-motion'
 import { AlertTriangle, CheckCircle2, TrendingUp, Zap, RefreshCw } from 'lucide-react'
 import GlassCard from '../components/cards/GlassCard.jsx'

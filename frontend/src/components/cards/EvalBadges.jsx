@@ -1,3 +1,8 @@
+/**
+ * EvalBadges — lazy evaluation widget rendered below a bot response in the Query Console.
+ * Shows a "Run evaluation" button until clicked; then fetches /evaluate and displays
+ * Faithfulness, LLM-Judge, and Format scores as colour-coded chips.
+ */
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldCheck, Sparkles, Gauge } from 'lucide-react'
@@ -38,6 +43,7 @@ export default function EvalBadges({ payload }) {
   const fmt   = pct(data.deepeval?.format_correctness)
   const overall = pct(data.summary?.overall)
 
+  /* Map a 0–100 score to a CSS pill class: green ≥75, yellow ≥50, red <50. */
   const color = (v) => v >= 75 ? 'pill-low' : v >= 50 ? 'pill-medium' : 'pill-high'
 
   return (

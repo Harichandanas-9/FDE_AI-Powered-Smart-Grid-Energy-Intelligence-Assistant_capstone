@@ -15,6 +15,12 @@ _SYSTEM = (
 
 
 def analyze_failure(state: dict) -> dict:
+    """LangGraph node: use the LLM to identify the primary root cause of a grid issue.
+
+    Prioritises unstable incident records when building context. Falls back to a
+    static message if the LLM is unavailable. Emits a failure_analysis_complete event
+    on the event bus when complete.
+    """
     query    = state.get("query", "")
     docs     = state.get("retrieved_docs", [])
     stab_out = state.get("agent_outputs", {}).get("stability", {})
@@ -25,6 +31,7 @@ def analyze_failure(state: dict) -> dict:
             parts.append(f"Stability analysis:\n{stab_out['analysis']}")
         if docs:
             unstable = [d for d in docs if d.get("metadata", {}).get("stabf") == "unstable"]
+            # Prefer unstable-flagged records; fall back to all docs if none are flagged
             parts.append("Incident records:\n" + "\n".join(d["text"] for d in (unstable or docs)[:4]))
         context = truncate_context("\n\n".join(parts))
 

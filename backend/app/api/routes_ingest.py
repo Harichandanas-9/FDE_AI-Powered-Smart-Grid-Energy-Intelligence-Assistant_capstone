@@ -27,6 +27,10 @@ _last_run_at: Optional[datetime] = None
 
 @router.post("", response_model=IngestResponse, summary="Run data ingestion")
 async def ingest(req: IngestRequest, request: Request) -> IngestResponse:
+    """Run the data ingestion pipeline synchronously and return a full report.
+
+    Updates the app component state so /health reflects whether chunks were written.
+    """
     global _last_report, _last_run_at
     try:
         report = run_ingestion(
@@ -58,6 +62,7 @@ async def ingest(req: IngestRequest, request: Request) -> IngestResponse:
 
 @router.get("/status", summary="Last ingestion report")
 async def ingest_status() -> dict:
+    """Return the report from the most recent ingestion run, or `never_run` if none has been triggered."""
     if _last_report is None:
         return {"status": "never_run"}
     return {

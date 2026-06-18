@@ -1,3 +1,8 @@
+/**
+ * AgentVisualization — interactive page that lets operators run a query through the
+ * 5-stage multi-agent pipeline and inspect each agent's execution trace, timing,
+ * root causes, recommendations, and retrieved evidence chunks.
+ */
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -16,6 +21,7 @@ const AGENT_META = {
   recommendation_agent:     { icon: Lightbulb,     color: '#6FE38A', label: 'Recommendation', desc: 'LLM synthesis' },
 }
 
+/** Renders a proportional timing bar so agents' latencies are easy to compare visually. */
 function TimingBar({ ms, maxMs }) {
   const pct = maxMs > 0 ? Math.min(100, (ms / maxMs) * 100) : 0
   return (
@@ -30,6 +36,11 @@ function TimingBar({ ms, maxMs }) {
   )
 }
 
+/**
+ * AgentCard — one tile in the execution trace representing a single agent step.
+ * Displays the agent label, pass/fail icon, timing bar, summary, and any
+ * domain-specific metadata extracted from the result (e.g. chunk count).
+ */
 function AgentCard({ t, idx, maxMs, result }) {
   const meta = AGENT_META[t.agent] || { icon: ChevronRight, color: '#7F8AA3', label: t.agent, desc: '' }
   const Icon = meta.icon

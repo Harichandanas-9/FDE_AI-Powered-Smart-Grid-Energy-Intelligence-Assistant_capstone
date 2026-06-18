@@ -1,3 +1,7 @@
+/**
+ * Sidebar — left-hand navigation panel containing the app logo and all page links.
+ * Active routes are highlighted with an accent dot; each item animates in on mount.
+ */
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {

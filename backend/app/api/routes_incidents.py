@@ -26,6 +26,7 @@ router = APIRouter(prefix="/incidents", tags=["incidents"])
 
 
 def _tenant_filter(tenant_id: str, where: Dict[str, Any]) -> Dict[str, Any]:
+    """Extend a Chroma `where` filter to include only documents owned by the caller's tenant or the shared 'default' tenant."""
     if tenant_id == "default":
         return where
     tenant_where = {"$or": [
@@ -47,6 +48,12 @@ async def list_incidents(
     source: Optional[str] = None,
     limit: int = Query(default=20, ge=1, le=200),
 ) -> Dict[str, Any]:
+    """List or search historical grid incidents with optional metadata filters.
+
+    When `q` is provided, runs a hybrid semantic + BM25 search. Without `q`,
+    browses ChromaDB directly with a graceful fallback to chunks.jsonl if Chroma
+    is unavailable.
+    """
     settings = get_settings()
     tenant_id = principal["tenant_id"]
 

@@ -1,3 +1,8 @@
+/**
+ * TimelineArea — stacked area chart showing incident counts over time grouped by severity.
+ * Each severity level has its own colour gradient defined in COLORS; areas are stacked
+ * so the total height represents total incidents in a time bucket.
+ */
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer,

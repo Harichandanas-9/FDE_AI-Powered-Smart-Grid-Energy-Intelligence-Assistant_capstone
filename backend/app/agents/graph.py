@@ -25,6 +25,8 @@ logger = get_logger(__name__)
 
 # ── State ──────────────────────────────────────────────────────────────────
 class GridState(TypedDict):
+    """Shared state dict passed between every node in the LangGraph pipeline."""
+
     query: str
     session_id: str
     messages: List[BaseMessage]
@@ -39,6 +41,7 @@ class GridState(TypedDict):
 
 # ── Routing ────────────────────────────────────────────────────────────────
 def _route_after_orchestrator(state: GridState) -> str:
+    """Route all recognized intents to grid_retrieval as the first data-fetching step."""
     intent = state.get("intent", "general")
     return {
         "grid_retrieval":    "grid_retrieval",
@@ -49,6 +52,7 @@ def _route_after_orchestrator(state: GridState) -> str:
 
 
 def _route_after_retrieval(state: GridState) -> str:
+    """Skip stability and go directly to failure_analysis when the intent is a failure investigation."""
     if state.get("intent") == "failure_analysis":
         return "failure_analysis"
     return "stability"
@@ -56,6 +60,11 @@ def _route_after_retrieval(state: GridState) -> str:
 
 # ── Node wrappers ──────────────────────────────────────────────────────────
 def _orchestrate(state: GridState) -> dict:
+    """Classify the incoming query into an intent and severity via the LLM router.
+
+    Parses the LLM's JSON response and falls back to intent="general", severity="LOW"
+    if the call fails or the response is malformed.
+    """
     import json
     from langchain_core.messages import HumanMessage, SystemMessage
     from app.core.llm_router import TaskType, router as llm_router
@@ -84,26 +93,31 @@ def _orchestrate(state: GridState) -> dict:
 
 
 def _retrieve(state: GridState) -> dict:
+    """LangGraph node: delegate to the grid_retrieval module's retrieve function."""
     from app.agents.grid_retrieval import retrieve
     return retrieve(state)
 
 
 def _stability(state: GridState) -> dict:
+    """LangGraph node: delegate to the stability module's analyze_stability function."""
     from app.agents.stability import analyze_stability
     return analyze_stability(state)
 
 
 def _failure(state: GridState) -> dict:
+    """LangGraph node: delegate to the failure_analysis module's analyze_failure function."""
     from app.agents.failure_analysis import analyze_failure
     return analyze_failure(state)
 
 
 def _recommend(state: GridState) -> dict:
+    """LangGraph node: delegate to the recommendation module's recommend function."""
     from app.agents.recommendation import recommend
     return recommend(state)
 
 
 def _synthesize(state: GridState) -> dict:
+    """LangGraph node: delegate to the recommendation module's synthesize_final function."""
     from app.agents.recommendation import synthesize_final
     return synthesize_final(state)
 

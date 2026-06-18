@@ -36,6 +36,8 @@ RRF_K = 60
 
 @dataclass
 class RetrievedChunk:
+    """A single retrieved document chunk with its fused relevance score and rank information."""
+
     id: str
     text: str
     metadata: Dict[str, Any]
@@ -50,12 +52,16 @@ def _rrf(ranked_list: List[str], weight: float) -> Dict[str, float]:
 
 
 class HybridRetriever:
+    """Combines Chroma semantic search and BM25 keyword search via Reciprocal Rank Fusion."""
+
     def __init__(self, settings: Settings, bm25_index: Optional[BM25Index] = None):
+        """Initialize the retriever with app settings and an optional pre-built BM25 index."""
         self.settings = settings
         self.bm25 = bm25_index
         self._chroma_collection = None  # lazy
 
     def _collection(self):
+        """Return the Chroma collection, initializing the client on first access."""
         if self._chroma_collection is None:
             client = get_client(self.settings.chroma_persist_dir)
             self._chroma_collection = get_or_create_collection(client)
@@ -69,6 +75,12 @@ class HybridRetriever:
         where: Optional[Dict[str, Any]] = None,
         tenant_id: Optional[str] = None,
     ) -> List[RetrievedChunk]:
+        """Run hybrid retrieval and return the top-k fused results.
+
+        Executes semantic search (Chroma) and keyword search (BM25) in parallel,
+        fuses rankings with RRF, optionally reranks, and applies CRAG retry on
+        low-confidence results.
+        """
         top_k = top_k or self.settings.final_top_k
         candidates = self.settings.retrieval_top_k
 
@@ -244,6 +256,7 @@ class HybridRetriever:
     )
 
     def _reformulate_query(self, query: str) -> str:
+        """Ask the LLM router to rewrite the query using alternative grid terminology (CRAG step)."""
         from langchain_core.messages import HumanMessage, SystemMessage
         from app.core.llm_router import TaskType, router as llm_router
         msgs = [

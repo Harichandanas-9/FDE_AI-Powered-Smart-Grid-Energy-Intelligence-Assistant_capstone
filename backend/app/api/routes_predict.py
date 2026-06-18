@@ -33,6 +33,7 @@ FREQ_WARNING  = 0.4
 
 
 def _risk_level(score: float) -> str:
+    """Map a composite risk score in [0, 1] to a human-readable risk level string."""
     if score >= 0.75: return "critical"
     if score >= 0.55: return "high"
     if score >= 0.35: return "medium"
@@ -40,6 +41,12 @@ def _risk_level(score: float) -> str:
 
 
 def _predict_region(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute a composite failure-risk prediction for a set of telemetry chunks.
+
+    Aggregates voltage deviation, frequency deviation, stability index, outage events,
+    and transformer overload rate into a weighted composite score, then generates
+    human-readable alerts and prioritised recommendations.
+    """
     if not chunks:
         return {"risk_score": 0.0, "risk_level": "low", "alerts": [], "recommendations": []}
     

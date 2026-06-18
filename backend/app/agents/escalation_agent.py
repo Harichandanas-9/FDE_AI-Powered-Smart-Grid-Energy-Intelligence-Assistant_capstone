@@ -29,9 +29,17 @@ WARNING_THRESHOLD  = 50.0   # health score below this = warning escalation
 
 
 class EscalationAgent(BaseAgent):
+    """Raises a WARNING or CRITICAL alert and prepends an escalation recommendation to the envelope."""
+
     name = "escalation_agent"
 
     def _run(self, env: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+        """Evaluate the health score and write escalation metadata to the envelope.
+
+        Determines the escalation level (WARNING vs CRITICAL), builds a human-readable
+        message, identifies the three most affected regions by incident count, and inserts
+        the escalation record at the front of the recommendations list.
+        """
         stab   = env.get("stability_analysis") or {}
         health = stab.get("grid_health_score")
 

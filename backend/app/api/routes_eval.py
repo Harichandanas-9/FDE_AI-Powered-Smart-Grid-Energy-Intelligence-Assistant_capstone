@@ -35,6 +35,10 @@ async def evaluate(
     body: Dict[str, Any] = Body(...),
     principal: dict = Depends(get_current_principal),
 ) -> Dict[str, Any]:
+    """Evaluate a single /analyze response using DeepEval metrics, an LLM judge, and heuristics.
+
+    Returns per-framework scores plus an aggregate `summary.overall` value in [0, 1].
+    """
     query = body.get("query") or body.get("response", {}).get("query") or ""
     response = body.get("response") or body
 

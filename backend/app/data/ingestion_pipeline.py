@@ -42,6 +42,8 @@ DEFAULT_MAX_ROWS = {
 
 @dataclass
 class IngestionReport:
+    """Summary of a single ingestion pipeline run, including chunk counts and errors."""
+
     started_at: float
     finished_at: float = 0.0
     chunks_written: int = 0
@@ -51,9 +53,11 @@ class IngestionReport:
 
     @property
     def duration_seconds(self) -> float:
+        """Wall-clock seconds elapsed between pipeline start and finish."""
         return max(0.0, self.finished_at - self.started_at)
 
     def to_dict(self) -> dict:
+        """Serialize the report to a plain dict for logging and API responses."""
         return {
             "duration_seconds": round(self.duration_seconds, 2),
             "chunks_written": self.chunks_written,

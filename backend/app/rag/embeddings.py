@@ -42,6 +42,7 @@ _LOCK = Lock()
 # Hash-based fallback embedder — pure NumPy
 # ============================================================================
 def _tokens(text: str) -> List[str]:
+    """Extract lowercase word tokens (letters, digits, hyphens) from text."""
     return _TOKEN_RE.findall((text or "").lower())
 
 
@@ -49,6 +50,7 @@ class HashEmbedder:
     """Deterministic keyword-hash embedder (feature-hashing trick)."""
 
     def __init__(self, dim: int = _DIM):
+        """Initialize with the desired embedding dimensionality."""
         self.dim = dim
         self.name = "hash-fallback"
 
@@ -60,6 +62,7 @@ class HashEmbedder:
         convert_to_numpy: bool = True,     # noqa: ARG002
         normalize_embeddings: bool = True,
     ) -> np.ndarray:
+        """Encode texts to (n, dim) float32 vectors using unigram + bigram hashing."""
         if isinstance(texts, str):
             texts = [texts]
         arr = np.zeros((len(texts), self.dim), dtype=np.float32)
@@ -87,6 +90,7 @@ class FastEmbedWrapper:
     """Wraps fastembed.TextEmbedding to look like a SentenceTransformer."""
 
     def __init__(self, model_name: str):
+        """Load a fastembed TextEmbedding model by name."""
         from fastembed import TextEmbedding  # noqa: PLC0415
         self._model = TextEmbedding(model_name)
         self.name = f"fastembed:{model_name}"
@@ -99,6 +103,7 @@ class FastEmbedWrapper:
         convert_to_numpy: bool = True,    # noqa: ARG002
         normalize_embeddings: bool = True,
     ) -> np.ndarray:
+        """Encode texts to a (n, dim) float32 array using the fastembed backend."""
         if isinstance(texts, str):
             texts = [texts]
         # fastembed returns a generator of np arrays

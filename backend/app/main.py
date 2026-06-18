@@ -34,6 +34,11 @@ from app.core.logging import configure_logging, get_logger
 
 
 def create_app() -> FastAPI:
+    """Construct and configure the FastAPI application instance.
+
+    Applies CORS middleware, attaches a request-ID middleware for tracing, and
+    registers all API routers under their respective prefixes.
+    """
     settings = get_settings()
     configure_logging(level=settings.app_log_level)
     logger = get_logger(__name__)
@@ -58,6 +63,12 @@ def create_app() -> FastAPI:
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
+        """Attach a unique request ID to every request and response.
+
+        Reads ``x-request-id`` from the incoming headers or generates a fresh
+        UUID, stores it on ``request.state``, and echoes it back in the response
+        header so callers can correlate logs with individual requests.
+        """
         req_id = request.headers.get("x-request-id", str(uuid.uuid4()))
         request.state.request_id = req_id
         try:

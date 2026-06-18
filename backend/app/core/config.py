@@ -7,6 +7,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application-wide configuration loaded from environment variables and an optional .env file.
+
+    All fields can be overridden via environment variables (case-insensitive).
+    Sensitive values such as API keys should be set in the environment rather
+    than committed to source control.
+    """
+
     # --- App ---
     app_name: str = Field(default="Smart Grid AI Assistant")
     app_env: Literal["development", "production"] = Field(default="development")
@@ -94,10 +101,15 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
+        """Parse the comma-separated CORS origins string into a list."""
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
     @property
     def demo_users_dict(self) -> dict:
+        """Deserialize the DEMO_USERS JSON string into a Python dict.
+
+        Returns an empty dict if the value is absent or malformed.
+        """
         import json
         try:
             return json.loads(self.demo_users)
@@ -107,9 +119,11 @@ class Settings(BaseSettings):
     @field_validator("app_log_level")
     @classmethod
     def _upper_log_level(cls, v: str) -> str:
+        """Normalize the log level to uppercase so stdlib logging accepts it."""
         return v.upper()
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    """Return the singleton Settings instance, constructed once and cached."""
     return Settings()

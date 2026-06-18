@@ -1,3 +1,7 @@
+/**
+ * Root application component — configures client-side routing for all pages
+ * and runs a background prefetch of the most critical API calls 1.5 s after mount.
+ */
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout.jsx'
@@ -41,6 +45,10 @@ function usePrefetch() {
   }, [])
 }
 
+/**
+ * App — top-level component that wraps the router.
+ * All page routes are nested inside AppLayout so they share the sidebar and topbar.
+ */
 export default function App() {
   usePrefetch()
 

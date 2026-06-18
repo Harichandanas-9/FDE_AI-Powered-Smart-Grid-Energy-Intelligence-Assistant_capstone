@@ -23,6 +23,7 @@ import pandas as pd
 
 
 def _fmt(x: Any, digits: int = 2) -> str:
+    """Format a value as a fixed-decimal string, falling back to str() on non-numerics."""
     try:
         return f"{float(x):.{digits}f}"
     except (TypeError, ValueError):

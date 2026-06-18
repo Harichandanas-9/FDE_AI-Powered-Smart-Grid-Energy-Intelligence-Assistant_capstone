@@ -24,6 +24,11 @@ _ORCH: Optional[AgentOrchestrator] = None
 
 
 def _get_orchestrator(request: Request) -> AgentOrchestrator:
+    """Return the module-level AgentOrchestrator singleton, creating it on first call.
+
+    The BM25 index is sourced from app state so the orchestrator always uses
+    the most recently ingested keyword index.
+    """
     global _ORCH
     if _ORCH is None:
         bm25 = getattr(request.app.state, "bm25_index", None)
@@ -38,6 +43,13 @@ async def analyze(
     principal: dict = Depends(get_current_principal),
     x_operator_name: Optional[str] = Header(default=None, alias="X-Operator-Name"),
 ):
+    """Run a natural-language grid incident analysis through the multi-agent orchestrator.
+
+    Applies optional region/severity/source filters, offloads the synchronous
+    orchestrator to a thread executor, caches the result for the recommendations
+    widget, and returns a filtered response dict to avoid FastAPI validation errors
+    on unexpected envelope keys.
+    """
     orch = _get_orchestrator(request)
     filters: Dict[str, Any] = {}
     if req.region:   filters["region"] = req.region

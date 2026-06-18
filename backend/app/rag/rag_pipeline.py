@@ -23,6 +23,7 @@ logger = get_logger(__name__)
 
 
 def _chunk_to_dict(c: RetrievedChunk) -> Dict[str, Any]:
+    """Serialize a RetrievedChunk to a plain dict suitable for JSON responses."""
     return {
         "id": c.id,
         "text": c.text,
@@ -34,8 +35,11 @@ def _chunk_to_dict(c: RetrievedChunk) -> Dict[str, Any]:
 
 
 class RagPipeline:
+    """Orchestrates the full RAG pipeline: guardrails -> retrieve -> generate -> validate."""
+
     def __init__(self, settings: Optional[Settings] = None,
                  bm25_index: Optional[BM25Index] = None):
+        """Wire up the retriever and LLM provider from settings."""
         self.settings = settings or get_settings()
         self.retriever = HybridRetriever(self.settings, bm25_index=bm25_index)
         self.provider = get_provider(self.settings)
@@ -49,6 +53,12 @@ class RagPipeline:
     def run(self, query: str, *, where: Optional[Dict[str, Any]] = None,
             top_k: Optional[int] = None,
             tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        """Execute the end-to-end RAG pipeline for a single query.
+
+        Validates the query through guardrails, retrieves relevant chunks,
+        generates a structured answer, and returns the full response payload.
+        Automatically falls back to TemplateProvider if the primary LLM fails.
+        """
         t0 = time.time()
 
         # 1) Guardrails
@@ -110,6 +120,11 @@ class RagPipeline:
 # We never trust the LLM blindly.
 
 def _coerce_shape(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Ensure the LLM response dict has all required keys with correct types.
+
+    Replaces missing or wrong-typed fields with safe defaults so downstream
+    Pydantic validation never fails due to an unexpected LLM output.
+    """
     def _s(x, default=""):
         return x if isinstance(x, str) else default
     def _l(x):

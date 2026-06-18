@@ -33,6 +33,10 @@ DATASET_SOURCES = {
 
 
 def _sniff_delimiter(path: Path) -> str:
+    """Detect CSV delimiter by sampling the first 8 KB of the file.
+
+    Falls back to counting semicolons vs commas in the header if csv.Sniffer fails.
+    """
     with path.open("r", encoding="utf-8", errors="replace") as f:
         sample = f.read(8192)
     try:
@@ -49,6 +53,11 @@ def load_csv(
     chunksize: Optional[int] = None,
     max_rows: Optional[int] = None,
 ) -> "pd.DataFrame | Iterator[pd.DataFrame]":
+    """Load a CSV file into a DataFrame, auto-detecting its delimiter.
+
+    Returns a chunked iterator when chunksize is set, otherwise a full DataFrame.
+    UCI '?' values are treated as NaN; bad lines are silently skipped.
+    """
     if not path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}")
 
@@ -82,10 +91,15 @@ def load_csv(
 
 
 def source_for(path: Path) -> str:
+    """Return the canonical source key ('stability', 'household', etc.) for a file path."""
     return DATASET_SOURCES.get(path.name, "unknown")
 
 
 def discover_datasets(data_dir: Path) -> list[tuple[Path, str]]:
+    """Scan data_dir for known CSV files and return (path, source_key) pairs.
+
+    Unrecognized files are logged and skipped; missing directories return an empty list.
+    """
     out: list[tuple[Path, str]] = []
     if not data_dir.exists():
         logger.warning("data_dir_missing", extra={"data_dir": str(data_dir)})

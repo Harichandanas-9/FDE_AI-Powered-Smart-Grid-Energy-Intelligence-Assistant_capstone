@@ -45,6 +45,7 @@ _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 
 def _split_sentences(text: str) -> List[str]:
+    """Split text on sentence boundaries, stripping empty parts."""
     parts = _SENT_SPLIT.split(text.strip())
     return [p.strip() for p in parts if p.strip()]
 
@@ -102,6 +103,7 @@ def _make_chunk(
     total: int,
     parent_id: str,
 ) -> Dict[str, Any]:
+    """Construct a canonical chunk dict, injecting position and provenance metadata."""
     meta = {
         **metadata,
         "chunk_index": index,
@@ -118,6 +120,7 @@ def _sentence_chunks(
     window: int,
     overlap: int,
 ) -> List[Dict[str, Any]]:
+    """Produce overlapping sentence-window chunks from a text string."""
     sents = _split_sentences(text)
 
     if len(sents) <= window:
@@ -146,6 +149,7 @@ def _fixed_chunks(
     size: int,
     overlap: int,
 ) -> List[Dict[str, Any]]:
+    """Produce overlapping fixed-character-width chunks from a text string."""
     stride = max(1, size - overlap)
     raw_chunks: List[str] = []
     i = 0

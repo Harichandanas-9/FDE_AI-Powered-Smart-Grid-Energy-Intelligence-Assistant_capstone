@@ -1,3 +1,7 @@
+/**
+ * LoadingDots — three-dot animated loading indicator used as a placeholder
+ * while async data is being fetched. Accepts an optional `label` string.
+ */
 export default function LoadingDots({ label = 'Loading' }) {
   return (
     <div className="flex items-center gap-2 text-ink-300 text-sm py-6 justify-center">

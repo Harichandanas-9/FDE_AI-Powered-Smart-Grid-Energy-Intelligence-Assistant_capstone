@@ -1,3 +1,8 @@
+/**
+ * Placeholder — scaffold component shown for pages whose backend endpoints exist
+ * but whose chart visualisations and interactive widgets are not yet implemented.
+ * Accepts `title`, `accent`, `description`, and `step` props.
+ */
 import GlassCard from '../components/cards/GlassCard.jsx'
 
 /** Generic placeholder for pages filled in STEP 11. */

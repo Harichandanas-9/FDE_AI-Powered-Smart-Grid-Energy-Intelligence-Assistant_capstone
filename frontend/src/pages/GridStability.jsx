@@ -1,3 +1,7 @@
+/**
+ * GridStability page — displays the overall grid health score, per-region breakdown,
+ * a live telemetry line chart, and a 3-day demand forecasting panel.
+ */
 import { TrendingUp } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -11,6 +15,10 @@ import TelemetryLineChart from '../components/charts/TelemetryLineChart.jsx'
 import { useApi } from '../hooks/useApi.js'
 import { GridScore, Telemetry, DemandForecast } from '../services/api.js'
 
+/**
+ * ForecastChart — merges actuals, rolling average, and 3-day forecast series into a
+ * single Recharts LineChart with a reference line separating historical from predicted data.
+ */
 function ForecastChart({ data }) {
   if (!data) return (
     <div className="space-y-2">
@@ -23,6 +31,7 @@ function ForecastChart({ data }) {
 
   const { actuals = [], rolling_avg = [], forecast = [], n_days = 0 } = data
 
+  /* Merge the three series by date so Recharts can render them on a single axis. */
   const byDate = {}
   actuals.forEach(    ({ date, demand }) => { byDate[date] = { ...byDate[date], date, actual: demand } })
   rolling_avg.forEach(({ date, demand }) => { byDate[date] = { ...byDate[date], date, rolling: demand } })

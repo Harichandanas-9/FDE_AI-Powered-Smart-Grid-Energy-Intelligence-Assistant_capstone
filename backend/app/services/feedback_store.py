@@ -14,12 +14,16 @@ _PATH = Path("./data_processed/feedback.jsonl")
 
 
 class FeedbackStore:
+    """Persists user rating events (thumbs up/down) to a JSONL file and an in-memory list."""
+
     def __init__(self) -> None:
+        """Initialize the store and load any existing ratings from disk."""
         self._lock    = threading.Lock()
         self._entries: List[Dict[str, Any]] = []
         self._load()
 
     def _load(self) -> None:
+        """Read existing feedback entries from the JSONL file into memory."""
         if not _PATH.exists():
             return
         try:
@@ -32,6 +36,7 @@ class FeedbackStore:
             logger.warning("feedback_load_failed", extra={"err": str(exc)})
 
     def save(self, session_id: str, message_id: str, rating: int, comment: str = "") -> None:
+        """Record a new rating, appending it to both memory and the JSONL file."""
         import time
         entry = {"session_id": session_id, "message_id": message_id,
                  "rating": rating, "comment": comment, "ts": time.time()}
@@ -45,10 +50,12 @@ class FeedbackStore:
                 logger.warning("feedback_persist_failed", extra={"err": str(exc)})
 
     def recent(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Return the most recent `limit` feedback entries, newest first."""
         with self._lock:
             return list(reversed(self._entries[-limit:]))
 
     def stats(self) -> Dict[str, Any]:
+        """Return aggregate counts of total, positive, and negative ratings."""
         with self._lock:
             total = len(self._entries)
             pos   = sum(1 for e in self._entries if e.get("rating", 0) > 0)

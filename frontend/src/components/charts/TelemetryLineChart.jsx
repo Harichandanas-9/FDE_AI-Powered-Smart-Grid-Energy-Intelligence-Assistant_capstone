@@ -1,3 +1,8 @@
+/**
+ * TelemetryLineChart — multi-series time-series line chart for raw telemetry samples.
+ * The `series` prop selects which metrics to render (e.g. ['voltage','frequency']).
+ * Timestamps are trimmed to "MM-DD HH:mm" for readability on the x-axis.
+ */
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer,

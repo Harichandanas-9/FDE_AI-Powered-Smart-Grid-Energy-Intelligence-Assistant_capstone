@@ -35,11 +35,18 @@ def tokenize(text: str) -> List[str]:
 
 @dataclass
 class BM25Index:
+    """In-memory BM25 index backed by rank_bm25.BM25Okapi.
+
+    Stores tokenized documents alongside their chunk IDs so search results
+    can be correlated with the original chunk dicts.
+    """
+
     chunk_ids: List[str]
     documents: List[List[str]]  # tokenized
     bm25: object                # rank_bm25.BM25Okapi instance
 
     def search(self, query: str, top_k: int = 20) -> List[Tuple[str, float]]:
+        """Return up to top_k (chunk_id, score) pairs ranked by BM25 relevance."""
         if not self.chunk_ids:
             return []
         toks = tokenize(query)
@@ -51,6 +58,7 @@ class BM25Index:
         return [(self.chunk_ids[i], float(s)) for i, s in ranked if s > 0]
 
     def save(self, path: Path) -> None:
+        """Pickle the index to disk, creating parent directories as needed."""
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(
@@ -63,6 +71,7 @@ class BM25Index:
 
     @classmethod
     def load(cls, path: Path) -> "BM25Index":
+        """Deserialize a previously saved BM25Index from a pickle file."""
         with open(path, "rb") as f:
             d = pickle.load(f)
         return cls(d["chunk_ids"], d["documents"], d["bm25"])

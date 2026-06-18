@@ -18,6 +18,7 @@ NOMINAL_FREQ = 50.0
 
 
 def _safe(meta: Dict, key: str, default: float = 0.0) -> float:
+    """Safely cast a metadata field to float, returning `default` on missing or invalid values."""
     try:
         return float(meta.get(key, default))
     except (TypeError, ValueError):
@@ -25,9 +26,17 @@ def _safe(meta: Dict, key: str, default: float = 0.0) -> float:
 
 
 class StabilityAgent(BaseAgent):
+    """Computes a deterministic Grid Health Score and anomaly counts from retrieved incident metadata."""
+
     name = "stability_agent"
 
     def _run(self, env: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+        """Analyse voltage, frequency, and stability-score fields across all retrieved chunks.
+
+        The Grid Health Score is a weighted blend of average stability score (40%),
+        worst-case voltage deviation (30%), and worst-case frequency deviation (30%),
+        with an additional penalty of up to 30 points for active outages.
+        """
         chunks: List[Dict] = env.get("retrieved", [])
         if not chunks:
             env["stability_analysis"] = {

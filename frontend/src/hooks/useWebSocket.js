@@ -1,3 +1,7 @@
+/**
+ * Custom hook for WebSocket connections — manages the socket lifecycle,
+ * reconnects with exponential backoff, and maintains a rolling message buffer.
+ */
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -77,6 +81,7 @@ export function useWebSocket(path, {
       }
     }
 
+    /* Exponential backoff: delay doubles each attempt, capped at 30 s. */
     const scheduleRetry = () => {
       retryRef.current = Math.min(retryRef.current + 1, 6)
       const delay = Math.min(30000, 500 * 2 ** retryRef.current)

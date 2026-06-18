@@ -142,6 +142,12 @@ DOMAIN_PHRASES = [
 
 @dataclass
 class GuardrailVerdict:
+    """The result of running the full guardrail chain on a single query.
+
+    `allow=True` means the (masked) query can proceed to the RAG pipeline.
+    `allow=False` means the caller should surface `response_message` to the user.
+    """
+
     allow: bool
     original_query: str
     masked_query: str
@@ -152,6 +158,7 @@ class GuardrailVerdict:
     response_message: str = ""  # human-friendly message to return to UI
 
     def to_dict(self) -> dict:
+        """Serialize the verdict to a plain dict for inclusion in API responses."""
         return {
             "allow": self.allow,
             "original_query": self.original_query,
@@ -169,7 +176,7 @@ class GuardrailVerdict:
 # ============================================================================
 
 def _detect(text: str, patterns: Dict[str, re.Pattern]) -> Dict[str, List[str]]:
-    """Return {category: [matches]} for every category that matched."""
+    """Scan text against a dict of named patterns and return all matches grouped by category."""
     hits: Dict[str, List[str]] = {}
     for name, pat in patterns.items():
         found = pat.findall(text)
@@ -179,7 +186,7 @@ def _detect(text: str, patterns: Dict[str, re.Pattern]) -> Dict[str, List[str]]:
 
 
 def _mask(text: str, patterns: Dict[str, re.Pattern]) -> Tuple[str, Dict[str, List[str]]]:
-    """Replace every match with its placeholder token; return new text + hits."""
+    """Replace PII matches in text with placeholder tokens; return masked text and matched categories."""
     hits: Dict[str, List[str]] = {}
     masked = text
     for name, pat in patterns.items():
@@ -192,7 +199,7 @@ def _mask(text: str, patterns: Dict[str, re.Pattern]) -> Tuple[str, Dict[str, Li
 
 
 def _is_on_topic(text: str) -> bool:
-    """Check whether masked text contains domain vocabulary or phrases."""
+    """Return True if the masked text contains at least one smart-grid domain keyword or phrase."""
     lower = text.lower()
     # phrase check first (cheap)
     for phrase in DOMAIN_PHRASES:

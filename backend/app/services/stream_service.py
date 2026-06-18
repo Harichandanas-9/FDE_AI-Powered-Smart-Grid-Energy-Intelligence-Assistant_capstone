@@ -31,6 +31,7 @@ NOM_V, NOM_F = 230.0, 50.0
 
 
 def _classify(v_dev: float, f_dev: float) -> str:
+    """Classify severity from normalized voltage deviation and absolute frequency deviation."""
     if v_dev > 0.10 or f_dev > 1.5: return "critical"
     if v_dev > 0.06 or f_dev > 0.8: return "high"
     if v_dev > 0.03 or f_dev > 0.3: return "medium"
@@ -38,6 +39,7 @@ def _classify(v_dev: float, f_dev: float) -> str:
 
 
 def _synthesize(i: int) -> dict:
+    """Generate a single synthetic telemetry tick using sinusoidal patterns with noise."""
     region = REGIONS[i % len(REGIONS)]
     # smooth oscillation + small jitter
     v = NOM_V + 8 * math.sin(i / 12) + random.uniform(-4, 4)
@@ -59,6 +61,7 @@ def _synthesize(i: int) -> dict:
 
 
 def _from_chunk(chunk: dict) -> dict:
+    """Extract telemetry fields from a stored chunk dict for replay mode."""
     m = chunk.get("metadata", {})
     return {
         "timestamp": m.get("window_start") or datetime.utcnow().isoformat() + "Z",
@@ -73,6 +76,7 @@ def _from_chunk(chunk: dict) -> dict:
 
 
 def _load_replay() -> list[dict]:
+    """Load all chunks from chunks.jsonl as replay-ready telemetry dicts."""
     p = Path("data_processed/chunks.jsonl")
     if not p.exists():
         return []
